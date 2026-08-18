@@ -10,21 +10,29 @@ import type { Profile } from './types.js'
  */
 
 export async function currentProfile(): Promise<Profile | null> {
-  const { data: sessionData } = await supabase.auth.getSession()
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  if (sessionError) throw new Error(`Session illisible : ${sessionError.message}`)
   const user = sessionData.session?.user
   if (!user) return null
 
+  console.info('[auth] session active', { userId: user.id, email: user.email })
+
   const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('[auth] lecture du profil refusée', error)
+    throw new Error(`Profil illisible (${error.code ?? 'erreur'}) : ${error.message}`)
+  }
   if (!data) {
-    // Session valide mais aucun profil : la migration 002 n'a probablement pas été appliquée.
-    await supabase.auth.signOut()
+    // Session valide mais aucun profil : le déclencheur n'a pas créé la ligne.
+    // On ne déconnecte pas : la déconnexion relancerait le démarrage et effacerait
+    // le message affiché juste après.
+    console.error('[auth] aucun profil pour', user.id, user.email)
     throw new Error(
-      "Aucun profil n'est associé à ce compte. Applique la migration supabase/002-auth-multi-tenant.sql.",
+      `Aucun profil n'est associé à ${user.email}. Exécute supabase/003-reparation-profils.sql dans Supabase.`,
     )
   }
   if (!data.active) {
-    await supabase.auth.signOut()
+    console.warn('[auth] compte désactivé', user.email)
     throw new Error('Ce compte est désactivé. Contacte un administrateur.')
   }
   return data as Profile

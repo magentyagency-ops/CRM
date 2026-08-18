@@ -96,10 +96,13 @@ function initShortcuts(): void {
 
 /* ------------------------------------------------------------ connexion */
 
-function showAuthScreen(message = ''): void {
+function showAuthScreen(message?: string): void {
   $('#authScreen').hidden = false
   $('#app').hidden = true
   const error = $('#authError')
+  // Sans message explicite on laisse l'erreur en place : un rappel de l'écran de
+  // connexion ne doit pas effacer la raison de l'échec précédent.
+  if (message === undefined) return
   error.hidden = !message
   error.textContent = message
 }
@@ -225,12 +228,17 @@ async function load(): Promise<void> {
   try {
     profile = await currentProfile()
   } catch (error) {
+    console.error('[crm] démarrage interrompu', error)
     showAuthScreen((error as Error).message)
     return
   }
 
   if (!profile) {
-    showAuthScreen()
+    // Connexion acceptée mais aucune session relue : stockage local bloqué,
+    // navigation privée, ou cookies tiers refusés par le navigateur.
+    showAuthScreen(
+      "Connexion acceptée mais la session n'a pas pu être conservée. Vérifie que le navigateur autorise le stockage local pour ce site (mode privé ou blocage des cookies).",
+    )
     return
   }
 
@@ -243,6 +251,7 @@ async function load(): Promise<void> {
     renderAccount()
     if (isAdmin()) void loadMembers()
   } catch (error) {
+    console.error('[crm] chargement des données', error)
     toast(`Chargement impossible : ${(error as Error).message}`, 'error')
   }
 }

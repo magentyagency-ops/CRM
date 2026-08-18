@@ -64,6 +64,11 @@ body[data-theme="sunset"] {
 * { box-sizing: border-box }
 html { scroll-behavior: smooth }
 
+/* L'attribut `hidden` doit l'emporter sur toute règle d'affichage de ce fichier :
+   sans cela, un élément masqué en JavaScript mais porteur d'un `display` explicite
+   (écran de connexion, boutons réservés à l'admin) resterait visible. */
+[hidden] { display: none !important }
+
 body {
   min-height: 100vh;
   margin: 0;
