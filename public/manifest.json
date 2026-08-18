@@ -1,0 +1,22 @@
+{
+  "name": "Nira CRM",
+  "short_name": "Nira CRM",
+  "description": "Nira CRM — pilotage des leads, du pipeline et des rendez-vous",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
