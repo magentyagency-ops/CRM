@@ -14,6 +14,7 @@ import {
   startOfDay,
   startOfWeek,
   toast,
+  viewIsActive,
 } from '../ui.js'
 
 type Mode = 'month' | 'week' | 'agenda'
@@ -69,6 +70,7 @@ function eventPill(event: CalendarEvent): string {
 }
 
 function render(): void {
+  if (!viewIsActive('calendar')) return
   const label = $('#calendarLabel')
   const eyebrow = $('#calendarEyebrow')
   const body = $('#calendarBody')

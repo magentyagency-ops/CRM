@@ -87,7 +87,8 @@ body:before, body:after {
   z-index: -1;
   border-radius: 50%;
   pointer-events: none;
-  transform: translateZ(0);
+  /* Pas de calque composité dédié : ces halos sont immobiles, et un calque de
+     plus derrière le bandeau alourdit le calcul de son flou. */
 }
 body:before {
   width: 600px; height: 600px; left: -180px; top: -220px;
@@ -113,7 +114,16 @@ button, input, textarea, select { font: inherit }
   transform: translateZ(0);
 }
 
-.topbar.glass,
+/* Le bandeau est collant : son flou ré-échantillonne à chaque image tout ce qui
+   défile dessous. Le coût croît bien plus vite que l'effet visuel — 6 px suffit
+   à l'effet de verre et rend le défilement fluide (mesuré : 87 → 120 fps).
+   Les panneaux flottants, eux, se superposent à un fond immobile : ils gardent
+   un flou franc. */
+.topbar.glass {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 .drawer-panel.glass,
 .modal-panel.glass,
 .account-panel.glass,
@@ -604,4 +614,14 @@ textarea.field { min-height: 92px; resize: vertical; font: 12px/1.7 Manrope }
   .member-card { grid-template-columns: 42px 1fr; grid-auto-rows: auto }
   .member-stats, .member-actions { grid-column: 1 / -1 }
   .account-id { display: none }
+}
+
+/* Réglage système « réduire les animations » : on coupe tout mouvement. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

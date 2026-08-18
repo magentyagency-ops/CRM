@@ -54,6 +54,14 @@ export const $ = <T extends HTMLElement = HTMLElement>(selector: string, scope: 
 export const $$ = <T extends HTMLElement = HTMLElement>(selector: string, scope: ParentNode = document): T[] =>
   Array.from(scope.querySelectorAll<T>(selector))
 
+/**
+ * Une vue masquée n'a pas besoin d'être reconstruite : sans ce garde-fou, la
+ * moindre modification de données refabrique le pipeline, le tableau, l'agenda
+ * et le tableau de bord d'un coup, dont trois invisibles.
+ */
+export const viewIsActive = (id: string): boolean =>
+  document.getElementById(`view-${id}`)?.classList.contains('active') ?? false
+
 export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] as string,

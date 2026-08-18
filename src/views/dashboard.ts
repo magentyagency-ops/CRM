@@ -14,6 +14,7 @@ import {
   formatMoney,
   initials,
   relativeDays,
+  viewIsActive,
 } from '../ui.js'
 
 const OPEN_STAGES = STAGES.filter((stage) => !stage.closed).map((stage) => stage.id)
@@ -24,6 +25,7 @@ export function initDashboard(): void {
 }
 
 function render(): void {
+  if (!viewIsActive('dashboard')) return
   const openLeads = state.leads.filter((lead) => OPEN_STAGES.includes(lead.stage))
   const won = state.leads.filter((lead) => lead.stage === 'won')
   const lost = state.leads.filter((lead) => lead.stage === 'lost')

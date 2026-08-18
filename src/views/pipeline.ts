@@ -18,6 +18,7 @@ import {
   formatDate,
   initials,
   relativeDays,
+  viewIsActive,
 } from '../ui.js'
 
 let search = ''
@@ -130,6 +131,7 @@ function leadCard(lead: Lead): string {
 }
 
 function render(): void {
+  if (!viewIsActive('pipeline')) return
   const board = $('#board')
   renderOwnerFilter()
   const visible = state.leads.filter((lead) => matchesSearch(lead, search) && matchesOwnerFilter(lead))

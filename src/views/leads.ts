@@ -15,6 +15,7 @@ import {
   relativeDays,
   stageMeta,
   toast,
+  viewIsActive,
 } from '../ui.js'
 import { matchesSearch } from './pipeline.js'
 
@@ -75,6 +76,7 @@ function compare(a: Lead, b: Lead): number {
 }
 
 function render(): void {
+  if (!viewIsActive('leads')) return
   const body = $('#leadTableBody')
   const empty = $('#leadTableEmpty')
 

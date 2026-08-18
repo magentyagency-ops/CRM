@@ -11,6 +11,7 @@ import {
   formatMoney,
   relativeDays,
   toast,
+  viewIsActive,
 } from '../ui.js'
 
 let members: Member[] = []
@@ -53,7 +54,7 @@ export async function loadMembers(): Promise<void> {
 }
 
 function render(): void {
-  if (!isAdmin()) return
+  if (!isAdmin() || !viewIsActive('admin')) return
   renderMetrics()
   renderList()
 }

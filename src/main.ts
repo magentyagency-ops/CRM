@@ -3,7 +3,7 @@ import { currentProfile, onAuthChange, sendPasswordReset, signIn, signOut, updat
 import { initDrawer } from './drawer.js'
 import { openEventForm, openLeadForm } from './forms.js'
 import { closeModal, initOverlays, openModal } from './modal.js'
-import { hydrate, isAdmin, state } from './store.js'
+import { hydrate, isAdmin, notify, state } from './store.js'
 import type { Theme } from './types.js'
 import { $, $$, escapeHtml, toast } from './ui.js'
 import { initAdmin, loadMembers } from './views/admin.js'
@@ -22,6 +22,8 @@ function showView(view: string): void {
   $$('.nav-btn').forEach((button) => button.classList.toggle('active', button.dataset.view === target))
   $$('.view').forEach((section) => section.classList.toggle('active', section.id === `view-${target}`))
   window.location.hash = target
+  // La vue qui vient d'apparaître n'a pas été rendue pendant qu'elle était masquée.
+  notify()
 }
 
 function initNavigation(): void {
