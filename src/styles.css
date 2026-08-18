@@ -140,15 +140,14 @@ button, input, textarea, select { font: inherit }
   padding: 10px 12px 10px 16px;
   border-radius: 20px;
 }
-.brand { display: flex; align-items: center; gap: 9px; margin-right: auto }
-.brand-mark {
-  display: grid; place-items: center; width: 32px; height: 32px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, var(--blue), var(--blue-2));
-  color: #fff; font-size: 17px;
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--blue) 30%, transparent);
+.brand { display: flex; align-items: center; margin-right: auto; padding-left: 4px }
+.brand-name {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -.05em;
+  line-height: 1;
+  user-select: none;
 }
-.brand-name { font-size: 15px; font-weight: 800; letter-spacing: -.05em }
 .brand-name b { color: var(--blue); font-weight: 800 }
 
 .nav { display: flex; gap: 3px }
@@ -532,7 +531,8 @@ textarea.field { min-height: 92px; resize: vertical; font: 12px/1.7 Manrope }
 /* ------------------------------------------------------------ connexion */
 .auth-screen { display: grid; place-items: center; min-height: 100vh; padding: 24px }
 .auth-card { width: min(420px, 100%); padding: 30px; border-radius: 22px }
-.auth-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 22px }
+.auth-brand { display: flex; align-items: center; margin-bottom: 22px }
+.auth-brand .brand-name { font-size: 28px; font-weight: 800; letter-spacing: -.05em }
 .auth-card h1 { margin: 0; font-size: 26px; letter-spacing: -.06em }
 .auth-intro { margin: 6px 0 20px; color: var(--muted); font-size: 11px; line-height: 1.6 }
 .auth-card .field-group { margin-bottom: 12px }
