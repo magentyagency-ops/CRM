@@ -123,7 +123,6 @@ function leadCard(lead: Lead): string {
       <div class="lead-card-meta">
         <span class="chip ${priority.chip}">${priority.label}</span>
         ${closing}
-        ${isAdmin() ? `<span class="chip violet"><i class="ri-user-line"></i>${escapeHtml(memberName(lead.owner_id))}</span>` : ''}
       </div>
       ${lead.nextStep ? `<p class="lead-next"><i class="ri-arrow-right-up-line"></i> ${escapeHtml(lead.nextStep)}</p>` : ''}
       <p class="lead-next" style="opacity:.75">Dernière activité ${relativeDays(lead.updatedAt)}</p>
