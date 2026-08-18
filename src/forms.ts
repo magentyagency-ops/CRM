@@ -1,6 +1,6 @@
 import { api } from './api.js'
 import { closeModal, openModal } from './modal.js'
-import { findLead, removeEvent, removeLead, state, upsertEvent, upsertLead } from './store.js'
+import { findLead, isAdmin, removeEvent, removeLead, state, upsertEvent, upsertLead } from './store.js'
 import type { CalendarEvent, Lead, Priority, Stage } from './types.js'
 import {
   $,
@@ -39,7 +39,23 @@ export function openLeadForm(lead?: Lead): void {
         <div class="field-group"><label for="f-role">Fonction</label>
           <input class="field" id="f-role" name="role" value="${escapeHtml(lead?.role ?? '')}" placeholder="Head of Ops"></div>
         <div class="field-group"><label for="f-owner">Responsable</label>
-          <input class="field" id="f-owner" name="owner" value="${escapeHtml(lead?.owner ?? '')}" placeholder="Toi"></div>
+          ${
+            isAdmin()
+              ? `<select class="field" id="f-owner" name="owner_id">
+                  ${state.members
+                    .map((member) =>
+                      option(
+                        member.id,
+                        member.full_name || member.email,
+                        (lead?.owner_id ?? state.profile?.id ?? '') === member.id,
+                      ),
+                    )
+                    .join('')}
+                </select>`
+              : `<input class="field" id="f-owner" value="${escapeHtml(
+                  state.profile?.full_name || state.profile?.email || 'Moi',
+                )}" disabled>`
+          }</div>
         <div class="field-group"><label for="f-email">Email</label>
           <input class="field" id="f-email" name="email" type="email" value="${escapeHtml(lead?.email ?? '')}" placeholder="camille@acme.fr"></div>
         <div class="field-group"><label for="f-phone">Téléphone</label>
@@ -91,7 +107,8 @@ export function openLeadForm(lead?: Lead): void {
       contact: String(data.get('contact') ?? '').trim(),
       company: String(data.get('company') ?? '').trim(),
       role: String(data.get('role') ?? '').trim(),
-      owner: String(data.get('owner') ?? '').trim(),
+      // Seul un admin peut réattribuer un lead ; sinon la propriété reste inchangée.
+      ...(isAdmin() && data.get('owner_id') ? { owner_id: String(data.get('owner_id')) } : {}),
       email: String(data.get('email') ?? '').trim(),
       phone: String(data.get('phone') ?? '').trim(),
       source: String(data.get('source') ?? '').trim(),

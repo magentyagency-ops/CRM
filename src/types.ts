@@ -28,6 +28,8 @@ export interface Lead {
   expectedCloseAt: string
   tags: string[]
   notes: string
+  /** Compte propriétaire du lead ; sert de clé de cloisonnement côté RLS. */
+  owner_id: string | null
   activities: Activity[]
   createdAt: string
   updatedAt: string
@@ -43,12 +45,43 @@ export interface CalendarEvent {
   location: string
   notes: string
   done: boolean
+  owner_id: string | null
   createdAt: string
   updatedAt: string
+}
+
+export type Role = 'admin' | 'user'
+
+export interface Profile {
+  id: string
+  email: string
+  full_name: string
+  role: Role
+  active: boolean
+  theme: Theme
+  created_at: string
+}
+
+export interface MemberStats {
+  leads: number
+  open: number
+  openValue: number
+  wonValue: number
+  lastActivity: string
+}
+
+export interface Member extends Profile {
+  stats: MemberStats
 }
 
 export interface AppState {
   theme: Theme
   leads: Lead[]
   events: CalendarEvent[]
+  /** Compte connecté, ou null tant que la session n'est pas établie. */
+  profile: Profile | null
+  /** Comptes visibles : tous pour un admin, uniquement le sien pour un user. */
+  members: Profile[]
+  /** Filtre du pipeline : liste d'owner_id, vide = tous les comptes. */
+  ownerFilter: string[]
 }

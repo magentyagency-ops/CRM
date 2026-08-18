@@ -12,7 +12,28 @@
   <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
-  <div class="app">
+  <!-- ------------------------------------------------------- connexion -->
+  <div class="auth-screen" id="authScreen" hidden>
+    <section class="auth-card glass">
+      <div class="auth-brand">
+        <span class="brand-mark"><i class="ri-donut-chart-fill"></i></span>
+        <span class="brand-name">Nira<b>CRM</b></span>
+      </div>
+      <h1>Connexion</h1>
+      <p class="auth-intro">Accède à ton pipeline commercial. Les comptes sont créés par un administrateur.</p>
+      <form id="loginForm">
+        <div class="field-group"><label for="loginEmail">Email</label>
+          <input class="field" id="loginEmail" name="email" type="email" autocomplete="email" required placeholder="prenom@entreprise.fr"></div>
+        <div class="field-group"><label for="loginPassword">Mot de passe</label>
+          <input class="field" id="loginPassword" name="password" type="password" autocomplete="current-password" required placeholder="••••••••"></div>
+        <p class="auth-error" id="authError" hidden></p>
+        <button class="btn primary auth-submit" type="submit"><i class="ri-login-circle-line"></i>Se connecter</button>
+      </form>
+      <button class="btn ghost auth-reset" type="button" id="resetPassword">Mot de passe oublié ?</button>
+    </section>
+  </div>
+
+  <div class="app" id="app" hidden>
     <nav class="topbar glass" aria-label="Navigation principale">
       <div class="brand">
         <span class="brand-mark"><i class="ri-donut-chart-fill"></i></span>
@@ -23,6 +44,22 @@
         <button class="nav-btn" data-view="pipeline"><i class="ri-flow-chart"></i><span>Pipeline</span></button>
         <button class="nav-btn" data-view="leads"><i class="ri-contacts-book-3-line"></i><span>Leads</span></button>
         <button class="nav-btn" data-view="calendar"><i class="ri-calendar-event-line"></i><span>Agenda</span></button>
+        <button class="nav-btn admin-only" data-view="admin" hidden><i class="ri-shield-user-line"></i><span>Réglages</span></button>
+      </div>
+      <div class="account-wrap" id="accountWrap">
+        <button class="account-btn" id="accountToggle" type="button" aria-label="Mon compte">
+          <span class="account-avatar" id="accountAvatar">?</span>
+          <span class="account-id">
+            <b id="accountName">—</b>
+            <span id="accountRole">—</span>
+          </span>
+        </button>
+        <div class="account-panel glass">
+          <small>Compte</small>
+          <p class="account-email" id="accountEmail">—</p>
+          <button class="btn" type="button" id="changePassword"><i class="ri-key-2-line"></i>Changer mon mot de passe</button>
+          <button class="btn danger" type="button" id="signOut"><i class="ri-logout-box-r-line"></i>Se déconnecter</button>
+        </div>
       </div>
       <div class="theme-wrap" id="themeWrap">
         <button class="icon-btn" id="themeToggle" type="button" aria-label="Changer de thème"><i class="ri-contrast-2-line"></i></button>
@@ -99,6 +136,19 @@
           </div>
           <div class="head-actions">
             <input class="field search" id="pipelineSearch" type="search" placeholder="Rechercher un lead, une société…">
+            <div class="owner-filter admin-only" id="ownerFilter" hidden>
+              <button class="btn" type="button" id="ownerFilterToggle">
+                <i class="ri-group-line"></i><span id="ownerFilterLabel">Tous les comptes</span><i class="ri-arrow-down-s-line"></i>
+              </button>
+              <div class="owner-panel glass">
+                <small>Afficher les deals de</small>
+                <div class="owner-list" id="ownerFilterList"></div>
+                <div class="owner-actions">
+                  <button class="btn ghost" type="button" data-owner-action="all">Tout sélectionner</button>
+                  <button class="btn ghost" type="button" data-owner-action="none">Tout effacer</button>
+                </div>
+              </div>
+            </div>
             <button class="btn primary" data-action="new-lead"><i class="ri-add-line"></i>Nouveau lead</button>
           </div>
         </header>
@@ -169,6 +219,28 @@
             <button class="btn" id="calendarToday" type="button">Aujourd'hui</button>
           </div>
           <div id="calendarBody"></div>
+        </section>
+      </section>
+
+      <!-- --------------------------------------------------- réglages admin -->
+      <section class="view" id="view-admin">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Administration</p>
+            <h1>Comptes de l'équipe</h1>
+            <p>Crée les accès de tes commerciaux, suis leur pipeline et gère leurs droits à distance.</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn" type="button" id="refreshMembers"><i class="ri-refresh-line"></i>Actualiser</button>
+            <button class="btn primary" type="button" data-action="new-member"><i class="ri-user-add-line"></i>Nouveau compte</button>
+          </div>
+        </header>
+        <div class="metrics" id="adminMetrics"></div>
+        <section class="card glass" style="margin-top:18px">
+          <div class="card-head">
+            <div><h2>Comptes</h2><p>Chaque compte ne voit que ses propres deals ; un administrateur voit tout.</p></div>
+          </div>
+          <div id="memberList"></div>
         </section>
       </section>
     </main>

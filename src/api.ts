@@ -1,12 +1,22 @@
 import { supabase } from './supabase.js'
-import type { Activity, AppState, CalendarEvent, Lead, Theme } from './types.js'
+import type { Activity, AppState, CalendarEvent, Lead, Profile, Theme } from './types.js'
 
 const now = () => new Date().toISOString()
 
+/** Identifiant du compte connecté : sert de propriétaire par défaut. */
+async function currentUserId(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession()
+  return data.session?.user.id ?? null
+}
+
 export const api = {
+  /**
+   * Charge tout ce que la RLS autorise pour le compte connecté : un commercial
+   * ne reçoit que ses leads, un admin les reçoit tous.
+   */
   async loadState(): Promise<AppState> {
-    const [settingsRes, leadsRes, activitiesRes, eventsRes] = await Promise.all([
-      supabase.from('settings').select('*').eq('id', 'general').maybeSingle(),
+    const [profilesRes, leadsRes, activitiesRes, eventsRes] = await Promise.all([
+      supabase.from('profiles').select('*').order('created_at', { ascending: true }),
       supabase.from('leads').select('*').order('createdAt', { ascending: false }),
       supabase.from('activities').select('*').order('createdAt', { ascending: false }),
       supabase.from('events').select('*').order('start', { ascending: true }),
@@ -17,7 +27,10 @@ export const api = {
       throw new Error(`Erreur Supabase: ${leadsRes.error.message}`)
     }
 
-    const theme: Theme = (settingsRes.data?.theme as Theme) || 'light'
+    const userId = await currentUserId()
+    const members = ((profilesRes.data || []) as Profile[]).filter((member) => member.active)
+    const profile = members.find((member) => member.id === userId) ?? null
+    const theme: Theme = profile?.theme ?? 'light'
     const activities = (activitiesRes.data || []) as (Activity & { leadId: string })[]
     const events = (eventsRes.data || []) as CalendarEvent[]
 
@@ -35,14 +48,18 @@ export const api = {
       theme,
       leads,
       events,
+      profile,
+      members,
+      ownerFilter: [],
     }
   },
 
   async saveTheme(theme: Theme): Promise<{ theme: Theme }> {
-    const { error } = await supabase
-      .from('settings')
-      .upsert({ id: 'general', theme, updated_at: now() })
+    const userId = await currentUserId()
+    if (!userId) return { theme }
 
+    // Le thème est propre à chaque compte : il vit dans son profil.
+    const { error } = await supabase.from('profiles').update({ theme }).eq('id', userId)
     if (error) {
       console.error('Erreur sauvegarde thème:', error)
       throw new Error(error.message)
@@ -71,6 +88,8 @@ export const api = {
       expectedCloseAt: input.expectedCloseAt ?? '',
       tags: input.tags ?? [],
       notes: input.notes ?? '',
+      // Un admin peut créer un lead pour un autre compte ; sinon on s'attribue le lead.
+      owner_id: input.owner_id ?? (await currentUserId()),
       createdAt: stamp,
       updatedAt: stamp,
     }
@@ -211,6 +230,7 @@ export const api = {
       location: input.location?.trim() ?? '',
       notes: input.notes ?? '',
       done: input.done ?? false,
+      owner_id: input.owner_id ?? (await currentUserId()),
       createdAt: stamp,
       updatedAt: stamp,
     }

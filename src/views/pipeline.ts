@@ -1,5 +1,13 @@
 import { changeStage, openLeadDrawer } from '../drawer.js'
-import { findLead, state, subscribe } from '../store.js'
+import {
+  findLead,
+  isAdmin,
+  matchesOwnerFilter,
+  memberName,
+  setOwnerFilter,
+  state,
+  subscribe,
+} from '../store.js'
 import type { Lead, Stage } from '../types.js'
 import {
   $,
@@ -20,8 +28,70 @@ export function initPipeline(): void {
     search = searchInput.value.trim().toLowerCase()
     render()
   })
+  initOwnerFilter()
   subscribe(render)
   render()
+}
+
+/* ----------------------------------------------- filtre par propriétaire */
+
+function initOwnerFilter(): void {
+  const wrap = $('#ownerFilter')
+
+  $('#ownerFilterToggle').addEventListener('click', (event) => {
+    event.stopPropagation()
+    wrap.classList.toggle('open')
+  })
+
+  document.addEventListener('click', (event) => {
+    if (!wrap.contains(event.target as Node)) wrap.classList.remove('open')
+  })
+
+  wrap.addEventListener('click', (event) => {
+    const action = (event.target as HTMLElement).closest<HTMLElement>('[data-owner-action]')?.dataset.ownerAction
+    if (action === 'all') setOwnerFilter(state.members.map((member) => member.id))
+    if (action === 'none') setOwnerFilter([])
+  })
+}
+
+function renderOwnerFilter(): void {
+  const wrap = $('#ownerFilter')
+  wrap.hidden = !isAdmin()
+  if (!isAdmin()) return
+
+  const selected = state.ownerFilter
+  const label =
+    selected.length === 0 || selected.length === state.members.length
+      ? 'Tous les comptes'
+      : selected.length === 1
+        ? memberName(selected[0])
+        : `${selected.length} comptes`
+  $('#ownerFilterLabel').textContent = label
+
+  const list = $('#ownerFilterList')
+  list.innerHTML = state.members
+    .map((member) => {
+      const count = state.leads.filter((lead) => lead.owner_id === member.id).length
+      const checked = selected.includes(member.id)
+      return `
+        <label class="owner-option${checked ? ' checked' : ''}">
+          <input type="checkbox" value="${member.id}"${checked ? ' checked' : ''}>
+          <span>
+            <b>${escapeHtml(member.full_name || member.email)}</b>
+            <small>${count} deal(s)${member.role === 'admin' ? ' · admin' : ''}</small>
+          </span>
+        </label>`
+    })
+    .join('')
+
+  list.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      const next = new Set(state.ownerFilter)
+      if (checkbox.checked) next.add(checkbox.value)
+      else next.delete(checkbox.value)
+      setOwnerFilter([...next])
+    })
+  })
 }
 
 export function matchesSearch(lead: Lead, needle: string): boolean {
@@ -53,6 +123,7 @@ function leadCard(lead: Lead): string {
       <div class="lead-card-meta">
         <span class="chip ${priority.chip}">${priority.label}</span>
         ${closing}
+        ${isAdmin() ? `<span class="chip violet"><i class="ri-user-line"></i>${escapeHtml(memberName(lead.owner_id))}</span>` : ''}
       </div>
       ${lead.nextStep ? `<p class="lead-next"><i class="ri-arrow-right-up-line"></i> ${escapeHtml(lead.nextStep)}</p>` : ''}
       <p class="lead-next" style="opacity:.75">Dernière activité ${relativeDays(lead.updatedAt)}</p>
@@ -61,7 +132,8 @@ function leadCard(lead: Lead): string {
 
 function render(): void {
   const board = $('#board')
-  const visible = state.leads.filter((lead) => matchesSearch(lead, search))
+  renderOwnerFilter()
+  const visible = state.leads.filter((lead) => matchesSearch(lead, search) && matchesOwnerFilter(lead))
 
   board.innerHTML = STAGES.map((stage) => {
     const leads = visible.filter((lead) => lead.stage === stage.id)

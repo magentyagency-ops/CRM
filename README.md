@@ -1,20 +1,27 @@
 # Nira CRM
 
-Plateforme locale de pilotage commercial : tableau de bord, pipeline de leads par niveau
-d'avancement et agenda. Même stack et même langage visuel que PerfectServe Mission Control
-(TypeScript, Vite, Express, thèmes verre dépoli).
+Plateforme de pilotage commercial pour une équipe : tableau de bord, pipeline de leads par
+niveau d'avancement et agenda. TypeScript et Vite côté client, Supabase (PostgreSQL, Auth,
+RLS) pour les données et les comptes, Vercel pour l'hébergement et les fonctions
+d'administration. Langage visuel repris de PerfectServe Mission Control (verre dépoli).
 
 ## Démarrer en local
 
 ```bash
 npm install
-npm run dev
+npm run dev          # http://127.0.0.1:5180
 ```
 
-Ouvrir ensuite : <http://127.0.0.1:5173/>
+Renseigner `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` dans `.env` (voir `.env.example`).
+Pour tester aussi l'administration des comptes en local : `npx vercel dev`.
 
-Le client tourne sur Vite (port 5173) et l'API Express sur le port 3002. Toutes les données
-sont enregistrées localement dans `data/crm.json` — rien n'est envoyé à l'extérieur.
+## Comptes et rôles
+
+L'application est multi-comptes : chaque commercial ne voit que ses propres leads,
+rendez-vous et statistiques, un administrateur voit et gère tout. Le cloisonnement
+est appliqué par la Row Level Security de Supabase, et les comptes se créent depuis
+l'onglet **Réglages**. La mise en service est décrite dans
+[DEPLOIEMENT.md](DEPLOIEMENT.md).
 
 ## Les trois espaces
 
@@ -28,6 +35,8 @@ sont enregistrées localement dans `data/crm.json` — rien n'est envoyé à l'e
 
 ### Pipeline
 
+- Filtre par compte (administrateur) : tous les deals, ceux d'un commercial, ou
+  une sélection de plusieurs commerciaux à la fois.
 - Six colonnes : Nouveau, Qualifié, Proposition, Négociation, Gagné, Perdu.
 - Glisser-déposer d'une carte pour faire avancer un lead ; la probabilité est alignée sur
   l'étape et le changement est ajouté à l'historique du lead.
@@ -53,18 +62,18 @@ rapides (planifier, modifier, supprimer).
 - `e` — nouveau rendez-vous
 - `Échap` — fermer la modale ou le panneau latéral
 
-## API locale
+## Architecture
 
-| Méthode | Route | Rôle |
-| --- | --- | --- |
-| `GET` | `/api/state` | Thème, leads et rendez-vous |
-| `PUT` | `/api/theme` | Enregistrer le thème |
-| `POST` / `PATCH` / `DELETE` | `/api/leads[/:id]` | Gérer les leads |
-| `POST` | `/api/leads/:id/activities` | Ajouter une entrée d'historique |
-| `POST` / `PATCH` / `DELETE` | `/api/events[/:id]` | Gérer les rendez-vous |
+| Élément | Rôle |
+| --- | --- |
+| `src/` | client TypeScript ; lit et écrit directement dans Supabase avec la clé publique |
+| `supabase/schema.sql` | tables métier (leads, activités, rendez-vous) |
+| `supabase/002-auth-multi-tenant.sql` | comptes, rôles, propriétaire des données et politiques RLS |
+| `api/admin/users.ts` | fonction serverless Vercel : création et gestion des comptes (clé `service_role`) |
+| `server/index.ts` | ancienne API Express sur fichier JSON, conservée pour référence, plus utilisée |
 
-Les entrées sont validées avec Zod ; l'écriture du fichier est atomique (fichier temporaire
-puis renommage) et sérialisée pour éviter toute corruption.
+Les droits ne sont pas appliqués par l'interface mais par PostgreSQL : chaque requête du
+navigateur est filtrée par la Row Level Security selon le compte connecté.
 
 ## Vérifier la version de production
 

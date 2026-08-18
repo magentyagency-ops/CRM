@@ -1,10 +1,17 @@
-import type { AppState, CalendarEvent, Lead } from './types.js'
+import type { AppState, CalendarEvent, Lead, Profile } from './types.js'
 
 type Listener = () => void
 
 const listeners = new Set<Listener>()
 
-export const state: AppState = { theme: 'light', leads: [], events: [] }
+export const state: AppState = {
+  theme: 'light',
+  leads: [],
+  events: [],
+  profile: null,
+  members: [],
+  ownerFilter: [],
+}
 
 export function subscribe(listener: Listener): void {
   listeners.add(listener)
@@ -18,8 +25,36 @@ export function hydrate(next: AppState): void {
   state.theme = next.theme
   state.leads = next.leads
   state.events = next.events
+  state.profile = next.profile
+  state.members = next.members
+  // Un filtre pointant vers un compte disparu serait invisible : on le nettoie.
+  state.ownerFilter = state.ownerFilter.filter((id) => next.members.some((member) => member.id === id))
   notify()
 }
+
+export const isAdmin = (): boolean => state.profile?.role === 'admin'
+
+export function setMembers(members: Profile[]): void {
+  state.members = members
+  notify()
+}
+
+export function setOwnerFilter(ownerIds: string[]): void {
+  state.ownerFilter = ownerIds
+  notify()
+}
+
+/** Nom lisible d'un compte, pour les cartes et les tableaux. */
+export function memberName(ownerId: string | null): string {
+  if (!ownerId) return 'Non attribué'
+  const member = state.members.find((item) => item.id === ownerId)
+  if (!member) return 'Compte supprimé'
+  return member.full_name || member.email
+}
+
+/** Applique le filtre par propriétaire ; un filtre vide laisse tout passer. */
+export const matchesOwnerFilter = (lead: Lead): boolean =>
+  state.ownerFilter.length === 0 || state.ownerFilter.includes(lead.owner_id ?? '')
 
 export function upsertLead(lead: Lead): void {
   const index = state.leads.findIndex((item) => item.id === lead.id)
