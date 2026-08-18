@@ -182,7 +182,7 @@ function bindColumns(board: HTMLElement): void {
     column.addEventListener('dragover', (event) => {
       event.preventDefault()
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
-      column.classList.add('drag-over')
+      if (!column.classList.contains('drag-over')) column.classList.add('drag-over')
     })
 
     column.addEventListener('dragleave', (event) => {
