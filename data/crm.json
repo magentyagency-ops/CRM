@@ -1,0 +1,292 @@
+{
+  "theme": "light",
+  "leads": [
+    {
+      "id": "fb72a876-7843-4dcf-b965-f68c5a56137d",
+      "contact": "Partouche",
+      "company": "Arnaud",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "new",
+      "value": 0,
+      "probability": 80,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "758e3e39-4100-42ef-a552-7b6e982d140c",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-18T00:07:54.395Z"
+        }
+      ],
+      "createdAt": "2026-08-18T00:07:54.395Z",
+      "updatedAt": "2026-08-18T00:07:54.395Z"
+    },
+    {
+      "id": "5a29b1fc-6dcb-4001-8975-b60b24753261",
+      "contact": "Damian",
+      "company": "Mercer",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "lost",
+      "value": 3300,
+      "probability": 0,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "8364d4b0-a6ae-4cd1-b668-51a7f31a702e",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-18T00:03:38.598Z"
+        }
+      ],
+      "createdAt": "2026-08-18T00:03:38.598Z",
+      "updatedAt": "2026-08-18T00:03:38.598Z"
+    },
+    {
+      "id": "d59fe573-dbf2-4959-ba4e-e9d33a163bc2",
+      "contact": "Somoene",
+      "company": "Tessi",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "lost",
+      "value": 2100,
+      "probability": 0,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "3c9afe58-5282-4dbd-800c-1ee7003aa30d",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-18T00:03:12.643Z"
+        }
+      ],
+      "createdAt": "2026-08-18T00:03:12.643Z",
+      "updatedAt": "2026-08-18T00:03:12.643Z"
+    },
+    {
+      "id": "a7bf1ab9-2e92-417f-ab45-b47c1087e9f1",
+      "contact": "Docteur",
+      "company": "Liliale",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "negotiation",
+      "value": 12000,
+      "probability": 80,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "59581506-ce4d-4f7b-af66-52fbb7aca4c1",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-18T00:01:54.994Z"
+        }
+      ],
+      "createdAt": "2026-08-18T00:01:54.994Z",
+      "updatedAt": "2026-08-18T00:01:54.994Z"
+    },
+    {
+      "id": "bc347166-b965-4197-ba7f-885ef3331b44",
+      "contact": "Olivier",
+      "company": "Certus",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "negotiation",
+      "value": 30000,
+      "probability": 80,
+      "priority": "high",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "e60c6146-0e36-4048-b48c-8b5d7471de48",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-18T00:01:22.005Z"
+        }
+      ],
+      "createdAt": "2026-08-18T00:01:22.005Z",
+      "updatedAt": "2026-08-18T00:01:22.005Z"
+    },
+    {
+      "id": "327914ef-1474-40f6-999e-94b9b8d353ba",
+      "contact": "Fabrice",
+      "company": "+IMMO",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "won",
+      "value": 4300,
+      "probability": 100,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "0d667e00-8ce4-4b9e-a194-566db3cc6edb",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-18T00:00:18.320Z"
+        }
+      ],
+      "createdAt": "2026-08-18T00:00:18.320Z",
+      "updatedAt": "2026-08-18T00:00:18.320Z"
+    },
+    {
+      "id": "75a9cecd-f7f3-4303-9610-38536f137e9d",
+      "contact": "Adil",
+      "company": "GSS",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "won",
+      "value": 4300,
+      "probability": 100,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "aee1ec84-1717-44aa-94a8-cc6bf6ee08ab",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-17T23:58:49.943Z"
+        }
+      ],
+      "createdAt": "2026-08-17T23:58:49.943Z",
+      "updatedAt": "2026-08-17T23:58:49.943Z"
+    },
+    {
+      "id": "ffb99896-597b-4994-a188-aff3a829fa3f",
+      "contact": "Olivier",
+      "company": "Certus",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "won",
+      "value": 2000,
+      "probability": 100,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "5bfb9e7b-1faf-4eb8-9877-ab2d3f670947",
+          "kind": "stage",
+          "text": "Étape : new → won.",
+          "createdAt": "2026-08-17T23:58:07.509Z"
+        },
+        {
+          "id": "488f7add-75d8-429e-8de1-962ba30dd591",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-17T23:58:05.133Z"
+        }
+      ],
+      "createdAt": "2026-08-17T23:58:05.133Z",
+      "updatedAt": "2026-08-17T23:58:07.509Z"
+    },
+    {
+      "id": "a6ffba0c-249a-447d-a5d8-c5bc9cdc6f0c",
+      "contact": "Guillaume",
+      "company": "TAC",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "won",
+      "value": 7600,
+      "probability": 100,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "6d419241-b9c5-4ccc-bdde-09c204483e48",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-17T23:56:22.310Z"
+        }
+      ],
+      "createdAt": "2026-08-17T23:56:22.310Z",
+      "updatedAt": "2026-08-17T23:56:53.932Z"
+    },
+    {
+      "id": "7f1ef5d6-1584-49c4-885a-1d850bd6ac6f",
+      "contact": "Arnaud",
+      "company": "Pathé Rouen",
+      "email": "",
+      "phone": "",
+      "role": "",
+      "source": "Direct",
+      "owner": "",
+      "stage": "won",
+      "value": 2300,
+      "probability": 100,
+      "priority": "medium",
+      "nextStep": "",
+      "expectedCloseAt": "",
+      "tags": [],
+      "notes": "",
+      "activities": [
+        {
+          "id": "77b3b9ff-a2f5-43d0-878e-43f1237a1f33",
+          "kind": "stage",
+          "text": "Lead créé.",
+          "createdAt": "2026-08-17T23:54:16.387Z"
+        }
+      ],
+      "createdAt": "2026-08-17T23:54:16.387Z",
+      "updatedAt": "2026-08-17T23:54:16.387Z"
+    }
+  ],
+  "events": []
+}

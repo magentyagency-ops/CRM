@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Nira CRM — pilotage des leads, du pipeline et des rendez-vous">
+  <title>Nira CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css">
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div class="app">
+    <nav class="topbar glass" aria-label="Navigation principale">
+      <div class="brand">
+        <span class="brand-mark"><i class="ri-donut-chart-fill"></i></span>
+        <span class="brand-name">Nira<b>CRM</b></span>
+      </div>
+      <div class="nav" id="nav">
+        <button class="nav-btn active" data-view="dashboard"><i class="ri-layout-grid-line"></i><span>Tableau de bord</span></button>
+        <button class="nav-btn" data-view="pipeline"><i class="ri-flow-chart"></i><span>Pipeline</span></button>
+        <button class="nav-btn" data-view="leads"><i class="ri-contacts-book-3-line"></i><span>Leads</span></button>
+        <button class="nav-btn" data-view="calendar"><i class="ri-calendar-event-line"></i><span>Agenda</span></button>
+      </div>
+      <div class="theme-wrap" id="themeWrap">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Changer de thème"><i class="ri-contrast-2-line"></i></button>
+        <div class="theme-panel glass">
+          <small>Apparence</small>
+          <div class="theme-grid" id="themeGrid">
+            <button class="theme-option" data-theme="light"><span class="swatch light"></span>Clair</button>
+            <button class="theme-option" data-theme="midnight"><span class="swatch midnight"></span>Minuit</button>
+            <button class="theme-option" data-theme="ocean"><span class="swatch ocean"></span>Océan</button>
+            <button class="theme-option" data-theme="sunset"><span class="swatch sunset"></span>Coucher</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+      <!-- ------------------------------------------------ tableau de bord -->
+      <section class="view active" id="view-dashboard">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Vue d'ensemble</p>
+            <h1>Ton activité commerciale.</h1>
+            <p>Pipeline, priorités du jour et prochains rendez-vous, calculés à partir de tes propres données.</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn" data-go="calendar"><i class="ri-calendar-line"></i>Agenda</button>
+            <button class="btn primary" data-action="new-lead"><i class="ri-add-line"></i>Nouveau lead</button>
+          </div>
+        </header>
+
+        <section class="summary-hero glass">
+          <div class="ai-orb"><i class="ri-pulse-line"></i></div>
+          <div>
+            <small>État du pipeline</small>
+            <p id="dashboardSummary">Aucun lead pour le moment.</p>
+          </div>
+        </section>
+
+        <div class="metrics" id="dashboardMetrics"></div>
+
+        <section class="card glass" style="margin-top:18px">
+          <div class="card-head">
+            <div><h2>Répartition par étape</h2><p>Valeur pondérée de chaque colonne du pipeline.</p></div>
+            <button class="btn" data-go="pipeline">Ouvrir le pipeline</button>
+          </div>
+          <div id="stageBars"></div>
+        </section>
+
+        <div class="grid two" style="margin-top:18px">
+          <section class="card glass">
+            <div class="card-head">
+              <div><h2>Leads à relancer</h2><p>Triés par priorité et par ancienneté de la dernière activité.</p></div>
+              <button class="btn" data-go="leads">Voir tout</button>
+            </div>
+            <div id="dashboardLeads"></div>
+          </section>
+          <section class="card glass">
+            <div class="card-head">
+              <div><h2>Prochains rendez-vous</h2><p>Les 6 prochains créneaux de ton agenda.</p></div>
+              <button class="btn" data-action="new-event">Planifier</button>
+            </div>
+            <div id="dashboardEvents"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------- pipeline -->
+      <section class="view" id="view-pipeline">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Niveau d'avancement</p>
+            <h1>Pipeline commercial</h1>
+            <p>Glisse une carte d'une colonne à l'autre pour faire avancer un lead. Chaque changement est historisé.</p>
+          </div>
+          <div class="head-actions">
+            <input class="field search" id="pipelineSearch" type="search" placeholder="Rechercher un lead, une société…">
+            <button class="btn primary" data-action="new-lead"><i class="ri-add-line"></i>Nouveau lead</button>
+          </div>
+        </header>
+        <div class="board" id="board"></div>
+      </section>
+
+      <!-- ---------------------------------------------------------- leads -->
+      <section class="view" id="view-leads">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Base de contacts</p>
+            <h1>Leads</h1>
+            <p>Toutes tes opportunités, filtrables par étape, priorité et responsable.</p>
+          </div>
+          <div class="head-actions">
+            <input class="field search" id="leadSearch" type="search" placeholder="Rechercher…">
+            <select class="field" id="leadStageFilter"></select>
+            <button class="btn primary" data-action="new-lead"><i class="ri-add-line"></i>Nouveau lead</button>
+          </div>
+        </header>
+        <section class="card glass">
+          <div class="table-wrap">
+            <table class="table" id="leadTable">
+              <thead>
+                <tr>
+                  <th data-sort="company">Société</th>
+                  <th data-sort="contact">Contact principal</th>
+                  <th data-sort="stage">Étape</th>
+                  <th data-sort="value">Valeur</th>
+                  <th data-sort="probability">Proba.</th>
+                  <th data-sort="expectedCloseAt">Clôture</th>
+                  <th data-sort="updatedAt">Activité</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="leadTableBody"></tbody>
+            </table>
+          </div>
+          <div id="leadTableEmpty"></div>
+        </section>
+      </section>
+
+      <!-- --------------------------------------------------------- agenda -->
+      <section class="view" id="view-calendar">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Organisation</p>
+            <h1>Agenda</h1>
+            <p>Planifie appels, démos et relances, reliés directement aux leads du pipeline.</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn primary" data-action="new-event"><i class="ri-add-line"></i>Nouveau rendez-vous</button>
+          </div>
+        </header>
+        <section class="calendar-shell glass">
+          <div class="calendar-toolbar">
+            <button class="icon-btn" id="calendarPrev" type="button" aria-label="Période précédente"><i class="ri-arrow-left-s-line"></i></button>
+            <button class="icon-btn" id="calendarNext" type="button" aria-label="Période suivante"><i class="ri-arrow-right-s-line"></i></button>
+            <div class="calendar-title">
+              <small id="calendarEyebrow">Mois</small>
+              <h2 id="calendarLabel">—</h2>
+            </div>
+            <div class="segmented" id="calendarModes">
+              <button class="seg active" data-mode="month">Mois</button>
+              <button class="seg" data-mode="week">Semaine</button>
+              <button class="seg" data-mode="agenda">Liste</button>
+            </div>
+            <button class="btn" id="calendarToday" type="button">Aujourd'hui</button>
+          </div>
+          <div id="calendarBody"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <aside class="drawer" id="leadDrawer" aria-hidden="true">
+    <div class="drawer-backdrop" data-close-drawer></div>
+    <section class="drawer-panel glass" id="leadDrawerPanel"></section>
+  </aside>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="modal-panel glass" id="modalPanel"></section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
