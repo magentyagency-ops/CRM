@@ -49,7 +49,7 @@ export function memberName(ownerId: string | null): string {
   if (!ownerId) return 'Non attribué'
   const member = state.members.find((item) => item.id === ownerId)
   if (!member) return 'Compte supprimé'
-  return member.full_name || member.email
+  return member.full_name || member.email.split('@')[0]
 }
 
 /** Applique le filtre par propriétaire ; un filtre vide laisse tout passer. */

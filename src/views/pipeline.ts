@@ -77,7 +77,7 @@ function renderOwnerFilter(): void {
         <label class="owner-option${checked ? ' checked' : ''}">
           <input type="checkbox" value="${member.id}"${checked ? ' checked' : ''}>
           <span>
-            <b>${escapeHtml(member.full_name || member.email)}</b>
+            <b>${escapeHtml(member.full_name || member.email.split('@')[0])}</b>
             <small>${count} deal(s)${member.role === 'admin' ? ' · admin' : ''}</small>
           </span>
         </label>`
