@@ -111,42 +111,12 @@ export function relativeDays(iso: string): string {
   return days > 0 ? `dans ${days} j` : `il y a ${Math.abs(days)} j`
 }
 
-export const initials = (lead: Lead): string => {
-  const source = (lead.company || lead.contact || '?').trim()
-  if (!source) return '?'
-  const words = source.split(/\s+/).filter(Boolean)
-  if (words.length >= 2) {
-    return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase()
-  }
-  return source.slice(0, 2).toUpperCase()
-}
-
-const AVATAR_PALETTES = [
-  'avatar-blue',
-  'avatar-indigo',
-  'avatar-purple',
-  'avatar-emerald',
-  'avatar-amber',
-  'avatar-rose',
-  'avatar-cyan',
-  'avatar-pink',
-]
-
-export function leadColorClass(lead: Lead): string {
-  const seed = lead.company || lead.contact || lead.id || ''
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash << 5) - hash + seed.charCodeAt(i)
-    hash |= 0
-  }
-  const index = Math.abs(hash) % AVATAR_PALETTES.length
-  return AVATAR_PALETTES[index]
-}
-
-export function leadAvatarHtml(lead: Lead, extraClass = ''): string {
-  const cls = ['lead-avatar', leadColorClass(lead), extraClass].filter(Boolean).join(' ')
-  return `<span class="${cls}">${escapeHtml(initials(lead))}</span>`
-}
+export const initials = (lead: Lead): string =>
+  (lead.company || lead.contact || '?')
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join('')
 
 export const weightedValue = (lead: Lead): number => (lead.value * lead.probability) / 100
 

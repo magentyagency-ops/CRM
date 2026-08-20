@@ -12,7 +12,7 @@ import {
   formatCompactMoney,
   formatDateTime,
   formatMoney,
-  leadAvatarHtml,
+  initials,
   relativeDays,
   viewIsActive,
 } from '../ui.js'
@@ -37,28 +37,10 @@ function render(): void {
     .filter((event) => new Date(event.start) >= new Date() && !event.done)
     .sort((a, b) => a.start.localeCompare(b.start))
 
-  renderSummary(openLeads, pipelineValue, upcoming.length)
   renderMetrics(openLeads.length, pipelineValue, winRate, won)
+  renderStageBars()
   renderFollowUps(openLeads)
   renderEvents(upcoming.slice(0, 6))
-}
-
-function renderSummary(openLeads: Lead[], pipelineValue: number, upcoming: number): void {
-  const node = $('#dashboardSummary')
-  if (!state.leads.length) {
-    node.textContent =
-      "Aucun lead pour le moment. Crée ta première opportunité pour voir ton pipeline s'animer ici."
-    return
-  }
-  const hot = openLeads.filter((lead) => lead.priority === 'high').length
-  const late = openLeads.filter(
-    (lead) => lead.expectedCloseAt && new Date(lead.expectedCloseAt) < new Date(),
-  ).length
-
-  node.innerHTML = `
-    ${openLeads.length} opportunité(s) ouverte(s) pour un total de <b>${formatMoney(pipelineValue)}</b>.
-    ${hot ? `<b>${hot}</b> lead(s) en priorité haute` : 'Aucune priorité haute'} et
-    ${upcoming} rendez-vous à venir.${late ? ` <b style="color:var(--red)">${late} date(s) de clôture dépassée(s).</b>` : ''}`
 }
 
 function renderMetrics(
@@ -79,6 +61,35 @@ function renderMetrics(
       <span class="metric-trend up">signé</span></article>`
 }
 
+function renderStageBars(): void {
+  const node = $('#stageBars')
+  if (!state.leads.length) {
+    node.innerHTML = emptyBlock('ri-flow-chart', 'Pipeline vide', 'Ajoute des leads pour visualiser la répartition.')
+    return
+  }
+
+  const totals = STAGES.map((stage) => {
+    const leads = state.leads.filter((lead) => lead.stage === stage.id)
+    return {
+      stage,
+      count: leads.length,
+      value: leads.reduce((sum, lead) => sum + lead.value, 0),
+    }
+  })
+  const max = Math.max(...totals.map((item) => item.value), 1)
+
+  node.innerHTML = `<div class="stage-bars">${totals
+    .map(
+      (item) => `
+      <div class="stage-bar">
+        <b>${item.stage.label} <span class="muted">(${item.count})</span></b>
+        <div class="stage-track"><div class="stage-fill" style="width:${Math.round((item.value / max) * 100)}%;background:${item.stage.color}"></div></div>
+        <span>${formatCompactMoney(item.value)}</span>
+      </div>`,
+    )
+    .join('')}</div>`
+}
+
 function renderFollowUps(openLeads: Lead[]): void {
   const node = $('#dashboardLeads')
   const weight: Record<Lead['priority'], number> = { high: 0, medium: 1, low: 2 }
@@ -95,7 +106,7 @@ function renderFollowUps(openLeads: Lead[]): void {
     .map(
       (lead) => `
       <button class="recent-item" type="button" data-lead="${lead.id}">
-        ${leadAvatarHtml(lead)}
+        <span class="lead-avatar">${escapeHtml(initials(lead))}</span>
         <span>
           <b>${escapeHtml(lead.company || 'Sans société')} <span class="chip ${PRIORITIES[lead.priority].chip}">${PRIORITIES[lead.priority].label}</span></b>
           <span>${escapeHtml([lead.contact, lead.role].filter(Boolean).join(' · ') || 'Sans contact')}${lead.nextStep ? ` · ${escapeHtml(lead.nextStep)}` : ''} · ${relativeDays(lead.updatedAt)}</span>
