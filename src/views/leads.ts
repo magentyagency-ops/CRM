@@ -11,7 +11,7 @@ import {
   escapeHtml,
   formatDate,
   formatMoney,
-  initials,
+  leadAvatarHtml,
   relativeDays,
   stageMeta,
   toast,
@@ -93,7 +93,7 @@ function render(): void {
         <tr data-lead="${lead.id}">
           <td>
             <div class="cell-name">
-              <span class="lead-avatar">${escapeHtml(initials(lead))}</span>
+              ${leadAvatarHtml(lead)}
               <div>
                 <b>${escapeHtml(lead.company || 'Sans société')}</b>
                 <span class="muted" style="font-size:9px">${escapeHtml(lead.role || 'Société')}</span>
@@ -123,7 +123,7 @@ function render(): void {
   empty.innerHTML = rows.length
     ? ''
     : emptyBlock(
-        'ri-contacts-book-3-line',
+        'ri-user-star-line',
         state.leads.length ? 'Aucun résultat' : 'Aucun lead',
         state.leads.length
           ? 'Modifie ta recherche ou le filtre d’étape.'

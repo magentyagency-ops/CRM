@@ -314,6 +314,7 @@ textarea.field { min-height: 92px; resize: vertical; font: 12px/1.7 Manrope }
   transition: .2s var(--ease);
 }
 .recent-item:hover { transform: translateX(2px); background: color-mix(in srgb, var(--blue) 8%, var(--surface)) }
+.recent-item .lead-avatar { width: 34px; height: 34px; border-radius: 10px; font-size: 12px }
 .recent-icon {
   display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
   background: color-mix(in srgb, var(--blue) 10%, var(--surface)); color: var(--blue);
@@ -353,9 +354,24 @@ textarea.field { min-height: 92px; resize: vertical; font: 12px/1.7 Manrope }
 .lead-card.dragging { opacity: .45; cursor: grabbing; transform: scale(.98) }
 .lead-card-top { display: flex; align-items: center; gap: 8px }
 .lead-avatar {
-  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px;
-  background: linear-gradient(135deg, var(--blue), var(--blue-2)); color: #fff; font: 800 10px Manrope;
+  display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--blue), var(--blue-2)); color: #fff;
+  font: 800 11px/1 Manrope, -apple-system, sans-serif; letter-spacing: .02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(255, 255, 255, .2);
+  flex-shrink: 0; user-select: none;
 }
+.lead-avatar.avatar-blue { background: linear-gradient(135deg, #0284c7, #38bdf8) }
+.lead-avatar.avatar-indigo { background: linear-gradient(135deg, #4f46e5, #818cf8) }
+.lead-avatar.avatar-purple { background: linear-gradient(135deg, #7c3aed, #a78bfa) }
+.lead-avatar.avatar-emerald { background: linear-gradient(135deg, #059669, #34d399) }
+.lead-avatar.avatar-amber { background: linear-gradient(135deg, #d97706, #fbbf24) }
+.lead-avatar.avatar-rose { background: linear-gradient(135deg, #e11d48, #fb7185) }
+.lead-avatar.avatar-cyan { background: linear-gradient(135deg, #0d9488, #2dd4bf) }
+.lead-avatar.avatar-pink { background: linear-gradient(135deg, #db2777, #f472b6) }
+.lead-avatar.large, .detail-hero .lead-avatar { width: 44px; height: 44px; border-radius: 14px; font-size: 15px }
+
 .lead-card-header { min-width: 0; flex: 1 }
 .lead-card-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px }
 .lead-card-title-row b { font-size: 11px; letter-spacing: -.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0 }
@@ -404,7 +420,7 @@ textarea.field { min-height: 92px; resize: vertical; font: 12px/1.7 Manrope }
 .table .cell-name b { display: block; font-size: 11px }
 .table .cell-name span { display: block; color: var(--muted); font-size: 9px }
 /* l'avatar est un span : il doit garder son propre lettrage, pas celui des sous-titres */
-.table .cell-name .lead-avatar { color: #fff; font: 800 10px Manrope }
+.table .cell-name .lead-avatar { color: #fff; font: 800 11px/1 Manrope; width: 30px; height: 30px }
 .table .num { font: 500 10px 'DM Mono' }
 .table .num.price { font: 800 15px Manrope; letter-spacing: -.05em; color: var(--ink); white-space: nowrap }
 .row-actions { display: flex; gap: 5px; justify-content: flex-end }

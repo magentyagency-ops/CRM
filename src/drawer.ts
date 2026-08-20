@@ -14,7 +14,7 @@ import {
   formatDate,
   formatDateTime,
   formatMoney,
-  initials,
+  leadAvatarHtml,
   relativeDays,
   stageMeta,
   toast,
@@ -50,7 +50,7 @@ function renderDrawer(): void {
   const panel = openDrawer(`
     <div class="panel-head">
       <div class="detail-hero">
-        <span class="lead-avatar">${escapeHtml(initials(lead))}</span>
+        ${leadAvatarHtml(lead, 'large')}
         <div>
           <h2>${escapeHtml(lead.company || 'Sans société')}</h2>
           <p>${escapeHtml([lead.contact, lead.role].filter(Boolean).join(' · ') || 'Aucun contact renseigné')}</p>

@@ -16,7 +16,7 @@ import {
   escapeHtml,
   formatCompactMoney,
   formatDate,
-  initials,
+  leadAvatarHtml,
   relativeDays,
   viewIsActive,
 } from '../ui.js'
@@ -112,7 +112,7 @@ function leadCard(lead: Lead): string {
   return `
     <article class="lead-card" draggable="true" data-lead="${lead.id}">
       <div class="lead-card-top">
-        <span class="lead-avatar">${escapeHtml(initials(lead))}</span>
+        ${leadAvatarHtml(lead)}
         <div class="lead-card-header">
           <div class="lead-card-title-row">
             <b>${escapeHtml(lead.company || 'Sans société')}</b>
