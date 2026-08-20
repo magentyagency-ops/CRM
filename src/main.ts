@@ -11,8 +11,9 @@ import { initCalendar } from './views/calendar.js'
 import { initDashboard } from './views/dashboard.js'
 import { initLeads } from './views/leads.js'
 import { initPipeline } from './views/pipeline.js'
+import { initStats } from './views/stats.js'
 
-const VIEWS = ['dashboard', 'pipeline', 'leads', 'calendar', 'admin']
+const VIEWS = ['dashboard', 'pipeline', 'leads', 'calendar', 'stats', 'admin']
 
 /* ------------------------------------------------------------ navigation */
 
@@ -270,6 +271,7 @@ async function boot(): Promise<void> {
   initPipeline()
   initLeads()
   initCalendar()
+  initStats()
   initAdmin(showView)
 
   onAuthChange(() => void start())

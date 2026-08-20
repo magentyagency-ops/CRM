@@ -49,6 +49,7 @@
         <button class="nav-btn" data-view="pipeline"><i class="ri-flow-chart"></i><span>Pipeline</span></button>
         <button class="nav-btn" data-view="leads"><i class="ri-contacts-book-3-line"></i><span>Leads</span></button>
         <button class="nav-btn" data-view="calendar"><i class="ri-calendar-event-line"></i><span>Agenda</span></button>
+        <button class="nav-btn" data-view="stats"><i class="ri-bar-chart-2-line"></i><span>Stats</span></button>
         <button class="nav-btn admin-only" data-view="admin" hidden><i class="ri-shield-user-line"></i><span>Réglages</span></button>
       </div>
       <div class="account-wrap" id="accountWrap">
@@ -219,6 +220,19 @@
         </section>
       </section>
 
+      <!-- ----------------------------------------------------------- stats -->
+      <section class="view" id="view-stats">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Analyse</p>
+            <h1>Statistiques</h1>
+            <p>Performance du portefeuille : transformation, cycle de vente, et ce qui se vend le mieux.</p>
+          </div>
+        </header>
+        <div class="metrics" id="statsKpis"></div>
+        <div id="statsBody"></div>
+      </section>
+
       <!-- --------------------------------------------------- réglages admin -->
       <section class="view" id="view-admin">
         <header class="page-head">
@@ -253,6 +267,7 @@
     <section class="modal-panel glass" id="modalPanel"></section>
   </div>
 
+  <div class="chart-tip" id="chartTip" role="status" aria-live="polite"></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script type="module" src="/src/main.ts"></script>
