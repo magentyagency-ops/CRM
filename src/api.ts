@@ -3,6 +3,20 @@ import type { Activity, AppState, CalendarEvent, Lead, Profile, Theme } from './
 
 const now = () => new Date().toISOString()
 
+/**
+ * Rejoue une écriture sans la colonne `offer` si la base ne la connaît pas
+ * encore : le déploiement du code et la migration 004 peuvent ainsi arriver
+ * dans n'importe quel ordre sans casser la création de leads.
+ */
+function colonneOffreAbsente(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  return (
+    error.code === 'PGRST204' ||
+    error.code === '42703' ||
+    Boolean(error.message && error.message.includes("'offer'"))
+  )
+}
+
 /** Identifiant du compte connecté : sert de propriétaire par défaut. */
 async function currentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession()
@@ -84,6 +98,7 @@ export const api = {
       value: Number.isFinite(input.value) ? Number(input.value) : 0,
       probability: Number.isFinite(input.probability) ? Number(input.probability) : 10,
       priority: input.priority ?? 'medium',
+      offer: input.offer ?? '',
       nextStep: input.nextStep?.trim() ?? '',
       expectedCloseAt: input.expectedCloseAt ?? '',
       tags: input.tags ?? [],
@@ -94,11 +109,20 @@ export const api = {
       updatedAt: stamp,
     }
 
-    const { data: createdLead, error: leadError } = await supabase
+    let { data: createdLead, error: leadError } = await supabase
       .from('leads')
       .insert(leadData)
       .select()
       .single()
+
+    if (colonneOffreAbsente(leadError)) {
+      const { offer: _sansOffre, ...donneesSansOffre } = leadData
+      ;({ data: createdLead, error: leadError } = await supabase
+        .from('leads')
+        .insert(donneesSansOffre)
+        .select()
+        .single())
+    }
 
     if (leadError) throw new Error(leadError.message)
 
@@ -151,12 +175,22 @@ export const api = {
     delete updatePayload.id
     delete updatePayload.createdAt
 
-    const { data: updatedLead, error } = await supabase
+    let { data: updatedLead, error } = await supabase
       .from('leads')
       .update(updatePayload)
       .eq('id', id)
       .select()
       .single()
+
+    if (colonneOffreAbsente(error)) {
+      delete updatePayload.offer
+      ;({ data: updatedLead, error } = await supabase
+        .from('leads')
+        .update(updatePayload)
+        .eq('id', id)
+        .select()
+        .single())
+    }
 
     if (error) throw new Error(error.message)
 

@@ -322,6 +322,9 @@ textarea.field { min-height: 92px; resize: vertical; font: 12px/1.7 Manrope }
 /* `.recent-item span` est plus spécifique que `.lead-avatar` : sans cette règle,
    les initiales héritent du gris et du corps 9 px des sous-titres. */
 .recent-item .lead-avatar {
+  /* `display` doit être répété : `.recent-item span { display: block }` est plus
+     spécifique et décentrerait les initiales en haut à gauche. */
+  display: grid; place-items: center; line-height: 1;
   width: 34px; height: 34px; border-radius: 10px;
   color: #fff; font: 800 11px Manrope;
 }

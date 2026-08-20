@@ -1,10 +1,11 @@
 import { api } from './api.js'
 import { closeModal, openModal } from './modal.js'
 import { findLead, isAdmin, removeEvent, removeLead, state, upsertEvent, upsertLead } from './store.js'
-import type { CalendarEvent, Lead, Priority, Stage } from './types.js'
+import type { CalendarEvent, Lead, Offer, Priority, Stage } from './types.js'
 import {
   $,
   EVENT_KINDS,
+  OFFERS,
   PRIORITIES,
   STAGES,
   escapeHtml,
@@ -14,6 +15,16 @@ import {
   toDateTimeInput,
   toast,
 } from './ui.js'
+
+/** Prospects déjà enregistrés, proposés à la saisie pour éviter les doublons. */
+const suggestionsSocietes = (): string => {
+  const noms = [...new Set(state.leads.map((lead) => lead.company.trim()).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, 'fr'),
+  )
+  return `<datalist id="societesConnues">${noms
+    .map((nom) => `<option value="${escapeHtml(nom)}"></option>`)
+    .join('')}</datalist>`
+}
 
 const option = (value: string, label: string, selected: boolean): string =>
   `<option value="${value}"${selected ? ' selected' : ''}>${escapeHtml(label)}</option>`
@@ -33,7 +44,9 @@ export function openLeadForm(lead?: Lead): void {
       </div>
       <div class="form-grid">
         <div class="field-group"><label for="f-company">Société</label>
-          <input class="field" id="f-company" name="company" required value="${escapeHtml(lead?.company ?? '')}" placeholder="Acme Corp"></div>
+          <input class="field" id="f-company" name="company" required list="societesConnues" autocomplete="off"
+            value="${escapeHtml(lead?.company ?? '')}" placeholder="Commence à taper : Certus, GSS…">
+          ${suggestionsSocietes()}</div>
         <div class="field-group"><label for="f-contact">Contact principal</label>
           <input class="field" id="f-contact" name="contact" value="${escapeHtml(lead?.contact ?? '')}" placeholder="Camille Durand"></div>
         <div class="field-group"><label for="f-role">Fonction</label>
@@ -70,6 +83,12 @@ export function openLeadForm(lead?: Lead): void {
               .map((key) => option(key, PRIORITIES[key].label, (lead?.priority ?? 'medium') === key))
               .join('')}
           </select></div>
+        <div class="field-group"><label for="f-offer">Type d'offre</label>
+          <select class="field" id="f-offer" name="offer">
+            ${(Object.keys(OFFERS) as Offer[])
+              .map((key) => option(key, OFFERS[key].label, (lead?.offer ?? '') === key))
+              .join('')}
+          </select></div>
         <div class="field-group"><label for="f-value">Valeur (€)</label>
           <input class="field" id="f-value" name="value" type="number" min="0" step="100" value="${lead?.value ?? 0}"></div>
         <div class="field-group"><label for="f-probability">Probabilité (%)</label>
@@ -93,6 +112,30 @@ export function openLeadForm(lead?: Lead): void {
     </form>`)
 
   const form = $<HTMLFormElement>('#leadForm', panel)
+  const companyInput = $<HTMLInputElement>('#f-company', panel)
+
+  // Reprendre les coordonnées connues du prospect évite de les ressaisir, sans
+  // jamais écraser ce qui vient d'être tapé.
+  if (!isEdit) {
+    companyInput.addEventListener('change', () => {
+      const connu = state.leads.find(
+        (item) => item.company.trim().toLowerCase() === companyInput.value.trim().toLowerCase(),
+      )
+      if (!connu) return
+      const reprendre = (id: string, valeur: string) => {
+        const champ = panel.querySelector<HTMLInputElement>(id)
+        if (champ && !champ.value.trim() && valeur) champ.value = valeur
+      }
+      reprendre('#f-contact', connu.contact)
+      reprendre('#f-role', connu.role)
+      reprendre('#f-email', connu.email)
+      reprendre('#f-phone', connu.phone)
+      const offre = panel.querySelector<HTMLSelectElement>('#f-offer')
+      if (offre && !offre.value && connu.offer) offre.value = connu.offer
+      toast(`Coordonnées reprises de ${connu.company}.`)
+    })
+  }
+
   const stageSelect = $<HTMLSelectElement>('#f-stage', panel)
   const probabilityInput = $<HTMLInputElement>('#f-probability', panel)
 
@@ -114,6 +157,7 @@ export function openLeadForm(lead?: Lead): void {
       source: String(data.get('source') ?? '').trim(),
       stage: (data.get('stage') as Stage) ?? 'new',
       priority: (data.get('priority') as Priority) ?? 'medium',
+      offer: (data.get('offer') as Offer) ?? '',
       value: Number(data.get('value') ?? 0),
       probability: Number(data.get('probability') ?? 0),
       nextStep: String(data.get('nextStep') ?? '').trim(),

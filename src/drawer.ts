@@ -7,6 +7,7 @@ import {
   $,
   ACTIVITY_ICONS,
   EVENT_KINDS,
+  OFFERS,
   PRIORITIES,
   STAGES,
   escapeHtml,
@@ -87,6 +88,7 @@ function renderDrawer(): void {
       <div class="fact"><small>Société</small><b>${escapeHtml(lead.company || '—')}</b></div>
       <div class="fact"><small>Contact</small><b>${escapeHtml(lead.contact || '—')}${lead.role ? ` (${escapeHtml(lead.role)})` : ''}</b></div>
       <div class="fact"><small>Clôture estimée</small><b>${lead.expectedCloseAt ? `${formatDate(lead.expectedCloseAt)}` : '—'}</b></div>
+      <div class="fact"><small>Type d'offre</small><b>${OFFERS[lead.offer ?? ''].label}</b></div>
       <div class="fact"><small>Priorité</small><b>${PRIORITIES[lead.priority].label}</b></div>
       <div class="fact"><small>Email</small><b>${lead.email ? `<a href="mailto:${escapeHtml(lead.email)}" style="color:var(--blue);text-decoration:none">${escapeHtml(lead.email)}</a>` : '—'}</b></div>
       <div class="fact"><small>Téléphone</small><b>${escapeHtml(lead.phone || '—')}</b></div>

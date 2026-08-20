@@ -1,6 +1,8 @@
 export type Theme = 'light' | 'midnight' | 'ocean' | 'sunset'
 export type Stage = 'new' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost'
 export type Priority = 'low' | 'medium' | 'high'
+/** Nature de ce qui est proposé au prospect. '' = non renseigné. */
+export type Offer = '' | 'logiciel' | 'audit'
 export type EventKind = 'call' | 'meeting' | 'demo' | 'followup' | 'internal'
 export type ActivityKind = 'note' | 'call' | 'email' | 'meeting' | 'stage'
 
@@ -24,6 +26,7 @@ export interface Lead {
   value: number
   probability: number
   priority: Priority
+  offer: Offer
   nextStep: string
   expectedCloseAt: string
   tags: string[]

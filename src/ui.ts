@@ -1,4 +1,4 @@
-import type { ActivityKind, EventKind, Lead, Priority, Stage } from './types.js'
+import type { ActivityKind, EventKind, Lead, Offer, Priority, Stage } from './types.js'
 
 /* ------------------------------------------------------------ référentiel */
 
@@ -25,6 +25,12 @@ export const PRIORITIES: Record<Priority, { label: string; chip: string }> = {
   high: { label: 'Haute', chip: 'red' },
   medium: { label: 'Moyenne', chip: 'amber' },
   low: { label: 'Basse', chip: 'muted' },
+}
+
+export const OFFERS: Record<Offer, { label: string; chip: string; icon: string }> = {
+  '': { label: 'Offre non définie', chip: 'muted', icon: 'ri-question-line' },
+  logiciel: { label: 'Logiciel', chip: 'violet', icon: 'ri-code-box-line' },
+  audit: { label: 'Audit', chip: 'green', icon: 'ri-search-eye-line' },
 }
 
 export const EVENT_KINDS: Record<EventKind, { label: string; icon: string; color: string }> = {

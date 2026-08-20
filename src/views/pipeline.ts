@@ -11,6 +11,7 @@ import {
 import type { Lead, Stage } from '../types.js'
 import {
   $,
+  OFFERS,
   PRIORITIES,
   STAGES,
   escapeHtml,
@@ -122,6 +123,7 @@ function leadCard(lead: Lead): string {
         </div>
       </div>
       <div class="lead-card-meta">
+        ${lead.offer ? `<span class="chip ${OFFERS[lead.offer].chip}"><i class="${OFFERS[lead.offer].icon}"></i>${OFFERS[lead.offer].label}</span>` : ''}
         <span class="chip ${priority.chip}">${priority.label}</span>
         ${closing}
       </div>
