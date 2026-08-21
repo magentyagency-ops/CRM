@@ -357,7 +357,7 @@ textarea.field { min-height: 92px; resize: vertical; font: 12px/1.7 Manrope }
   background: var(--field); cursor: grab;
   transform: translateZ(0);
   transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
-  overflow-wrap: anywhere; word-break: break-word;
+  overflow-wrap: anywhere; word-break: break-word; min-width: 0;
 }
 .lead-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(26, 93, 153, .1); border-color: color-mix(in srgb, var(--blue) 28%, var(--hair)) }
 .lead-card.dragging { opacity: .45; cursor: grabbing; transform: scale(.98) }
