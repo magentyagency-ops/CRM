@@ -1,9 +1,23 @@
 import { api } from './api.js'
+import { syncMeetingToPipeline } from './leadFromCall.js'
 import { closeModal, openModal } from './modal.js'
-import { findLead, isAdmin, removeEvent, removeLead, state, upsertEvent, upsertLead } from './store.js'
-import type { CalendarEvent, Lead, Offer, Priority, Stage } from './types.js'
+import {
+  findLead,
+  isAdmin,
+  removeCall,
+  removeEvent,
+  removeLead,
+  state,
+  upsertCall,
+  upsertEvent,
+  upsertLead,
+} from './store.js'
+import type { CalendarEvent, Call, CallObjection, CallOutcome, CallReason, Lead, Offer, Priority, Stage } from './types.js'
 import {
   $,
+  CALL_OBJECTIONS,
+  CALL_OUTCOMES,
+  CALL_REASONS,
   EVENT_KINDS,
   OFFERS,
   PRIORITIES,
@@ -14,6 +28,7 @@ import {
   toDateInput,
   toDateTimeInput,
   toast,
+  todayKey,
 } from './ui.js'
 
 /** Prospects déjà enregistrés, proposés à la saisie pour éviter les doublons. */
@@ -319,4 +334,179 @@ function defaultStart(): Date {
   const date = new Date()
   date.setMinutes(date.getMinutes() < 30 ? 30 : 60, 0, 0)
   return date
+}
+
+/* ------------------------------------------------------------ appel form */
+
+/**
+ * Fiche d'appel complète. La saisie rapide se fait directement dans le tableau
+ * du suivi ; ce formulaire sert à compléter le détail — objection entendue,
+ * notes, prochaine action — et à corriger une ligne existante.
+ */
+export function openCallForm(call?: Call, defaults?: Partial<Call>): void {
+  const isEdit = Boolean(call)
+  const base: Partial<Call> = call ?? { date: todayKey(), outcome: 'no-answer', ...defaults }
+
+  const panel = openModal(`
+    <form id="callForm">
+      <div class="panel-head">
+        <div>
+          <h2>${isEdit ? "Modifier l'appel" : 'Enregistrer un appel'}</h2>
+          <p>Un appel par ligne : le suivi calcule ensuite les taux de réponse et de rendez-vous.</p>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal aria-label="Fermer"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="form-grid">
+        <div class="field-group"><label for="c-date">Date de l'appel</label>
+          <input class="field" id="c-date" name="date" type="date" required value="${escapeHtml(base.date ?? todayKey())}"></div>
+        <div class="field-group"><label for="c-company">Entreprise</label>
+          <input class="field" id="c-company" name="company" list="societesConnues" autocomplete="off"
+            value="${escapeHtml(base.company ?? '')}" placeholder="Certus, GSS…">
+          ${suggestionsSocietes()}</div>
+        <div class="field-group"><label for="c-contact">Nom du contact</label>
+          <input class="field" id="c-contact" name="contact" value="${escapeHtml(base.contact ?? '')}" placeholder="Camille Durand"></div>
+        <div class="field-group"><label for="c-phone">Numéro de téléphone</label>
+          <input class="field" id="c-phone" name="phone" value="${escapeHtml(base.phone ?? '')}" placeholder="+33 6 12 34 56 78"></div>
+        <div class="field-group"><label for="c-outcome">Résultat de l'appel</label>
+          <select class="field" id="c-outcome" name="outcome">
+            ${(Object.keys(CALL_OUTCOMES) as CallOutcome[])
+              .map((key) => option(key, CALL_OUTCOMES[key].label, (base.outcome ?? 'no-answer') === key))
+              .join('')}
+          </select></div>
+        <div class="field-group"><label for="c-lead">Lead associé</label>
+          <select class="field" id="c-lead" name="leadId">
+            <option value="">Aucun</option>
+            ${state.leads
+              .map((item) =>
+                option(
+                  item.id,
+                  `${item.company || 'Sans société'}${item.contact ? ` (${item.contact})` : ''}`,
+                  (base.leadId ?? '') === item.id,
+                ),
+              )
+              .join('')}
+          </select></div>
+        <div class="field-group full">
+          <div class="toggle-row">
+            <label class="toggle"><input type="checkbox" id="c-conversation" name="conversation"${base.conversation ? ' checked' : ''}>
+              <span><b>Conversation engagée</b><small>Le prospect a réellement échangé avec toi.</small></span></label>
+            <label class="toggle"><input type="checkbox" id="c-meeting" name="meeting"${base.meeting ? ' checked' : ''}>
+              <span><b>Rendez-vous pris</b><small>L'appel débouche sur un créneau.</small></span></label>
+          </div>
+        </div>
+        <div class="field-group" id="c-meeting-field"><label for="c-meetingAt">Date du rendez-vous</label>
+          <input class="field" id="c-meetingAt" name="meetingAt" type="date" value="${escapeHtml(base.meetingAt ?? '')}"></div>
+        <div class="field-group" id="c-reason-field"><label for="c-reason">Si pas de rendez-vous : raison</label>
+          <select class="field" id="c-reason" name="reason">
+            ${(Object.keys(CALL_REASONS) as CallReason[])
+              .map((key) => option(key, CALL_REASONS[key], (base.reason ?? '') === key))
+              .join('')}
+          </select></div>
+        <div class="field-group"><label for="c-objection">Objection principale</label>
+          <select class="field" id="c-objection" name="objection">
+            ${(Object.keys(CALL_OBJECTIONS) as CallObjection[])
+              .map((key) => option(key, CALL_OBJECTIONS[key], (base.objection ?? '') === key))
+              .join('')}
+          </select></div>
+        <div class="field-group"><label for="c-followUpAt">Date de relance</label>
+          <input class="field" id="c-followUpAt" name="followUpAt" type="date" value="${escapeHtml(base.followUpAt ?? '')}"></div>
+        <div class="field-group full"><label for="c-nextAction">Prochaine action</label>
+          <input class="field" id="c-nextAction" name="nextAction" value="${escapeHtml(base.nextAction ?? '')}" placeholder="Rappeler après la réunion budget"></div>
+        <div class="field-group full"><label for="c-notes">Notes d'appel</label>
+          <textarea class="field" id="c-notes" name="notes" placeholder="Contexte, interlocuteur, ce qui a été dit…">${escapeHtml(base.notes ?? '')}</textarea></div>
+      </div>
+      <div class="form-actions">
+        ${isEdit ? '<button class="btn danger spacer" type="button" id="deleteCall"><i class="ri-delete-bin-line"></i>Supprimer</button>' : ''}
+        <button class="btn" type="button" data-close-modal>Annuler</button>
+        <button class="btn primary" type="submit"><i class="ri-check-line"></i>${isEdit ? 'Enregistrer' : "Enregistrer l'appel"}</button>
+      </div>
+    </form>`)
+
+  const form = $<HTMLFormElement>('#callForm', panel)
+  const outcome = $<HTMLSelectElement>('#c-outcome', panel)
+  const conversation = $<HTMLInputElement>('#c-conversation', panel)
+  const meeting = $<HTMLInputElement>('#c-meeting', panel)
+
+  // Les trois champs se répondent : sans réponse il n'y a pas de conversation,
+  // et un rendez-vous obtenu rend la « raison de refus » sans objet.
+  const syncDependencies = (): void => {
+    if (outcome.value !== 'answered') {
+      conversation.checked = false
+      meeting.checked = false
+    }
+    conversation.disabled = outcome.value !== 'answered'
+    meeting.disabled = !conversation.checked
+    if (!conversation.checked) meeting.checked = false
+    $('#c-meeting-field', panel).hidden = !meeting.checked
+    $('#c-reason-field', panel).hidden = meeting.checked
+  }
+
+  outcome.addEventListener('change', () => {
+    // Une réponse implique presque toujours un échange : on le pré-coche.
+    if (outcome.value === 'answered' && !conversation.checked) conversation.checked = true
+    syncDependencies()
+  })
+  conversation.addEventListener('change', syncDependencies)
+  meeting.addEventListener('change', syncDependencies)
+  syncDependencies()
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const data = new FormData(form)
+    const gotMeeting = meeting.checked
+    const payload: Partial<Call> = {
+      date: String(data.get('date') ?? '') || todayKey(),
+      contact: String(data.get('contact') ?? '').trim(),
+      company: String(data.get('company') ?? '').trim(),
+      phone: String(data.get('phone') ?? '').trim(),
+      outcome: (data.get('outcome') as CallOutcome) ?? 'no-answer',
+      conversation: conversation.checked,
+      meeting: gotMeeting,
+      meetingAt: gotMeeting ? String(data.get('meetingAt') ?? '') : '',
+      reason: gotMeeting ? '' : ((data.get('reason') as CallReason) ?? ''),
+      objection: (data.get('objection') as CallObjection) ?? '',
+      notes: String(data.get('notes') ?? ''),
+      nextAction: String(data.get('nextAction') ?? '').trim(),
+      followUpAt: String(data.get('followUpAt') ?? ''),
+      leadId: String(data.get('leadId') ?? '') || null,
+    }
+
+    try {
+      const saved = call ? await api.updateCall(call.id, payload) : await api.createCall(payload)
+      upsertCall(saved)
+
+      if (saved.meeting && !call?.meeting) {
+        // Un rendez-vous obtenu place l'opportunité en « Qualifié » dans le
+        // pipeline et consigne lui-même l'événement dans son historique.
+        await syncMeetingToPipeline(saved)
+      } else {
+        // Sinon l'appel enrichit simplement l'historique du lead déjà relié.
+        const linked = findLead(saved.leadId)
+        if (linked && !call) {
+          upsertLead(
+            await api.addActivity(linked.id, {
+              kind: 'call',
+              text: `Appel : ${CALL_OUTCOMES[saved.outcome].label}.`,
+            }),
+          )
+        }
+      }
+      closeModal()
+      toast(call ? 'Appel mis à jour.' : 'Appel enregistré.')
+    } catch (error) {
+      toast((error as Error).message, 'error')
+    }
+  })
+
+  panel.querySelector('#deleteCall')?.addEventListener('click', async () => {
+    if (!call || !confirm('Supprimer définitivement cet appel ?')) return
+    try {
+      await api.deleteCall(call.id)
+      removeCall(call.id)
+      closeModal()
+      toast('Appel supprimé.')
+    } catch (error) {
+      toast((error as Error).message, 'error')
+    }
+  })
 }

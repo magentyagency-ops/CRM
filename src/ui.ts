@@ -1,4 +1,14 @@
-import type { ActivityKind, EventKind, Lead, Offer, Priority, Stage } from './types.js'
+import type {
+  ActivityKind,
+  CallObjection,
+  CallOutcome,
+  CallReason,
+  EventKind,
+  Lead,
+  Offer,
+  Priority,
+  Stage,
+} from './types.js'
 
 /* ------------------------------------------------------------ référentiel */
 
@@ -39,6 +49,35 @@ export const EVENT_KINDS: Record<EventKind, { label: string; icon: string; color
   demo: { label: 'Démo', icon: 'ri-presentation-line', color: 'var(--cyan)' },
   followup: { label: 'Relance', icon: 'ri-mail-send-line', color: 'var(--amber)' },
   internal: { label: 'Interne', icon: 'ri-team-line', color: 'var(--muted)' },
+}
+
+/* --------------------------------------------------- suivi des appels */
+
+/** Issues d'appel, dans l'ordre croissant d'engagement du prospect. */
+export const CALL_OUTCOMES: Record<CallOutcome, { label: string; short: string; chip: string; icon: string; color: string }> = {
+  'no-answer': { label: 'Sans réponse', short: 'Sans réponse', chip: 'muted', icon: 'ri-phone-off-line', color: 'var(--muted)' },
+  voicemail: { label: 'Messagerie vocale', short: 'Messagerie', chip: 'amber', icon: 'ri-voiceprint-line', color: 'var(--amber)' },
+  answered: { label: 'A répondu', short: 'A répondu', chip: 'green', icon: 'ri-phone-line', color: 'var(--green)' },
+}
+
+export const CALL_REASONS: Record<CallReason, string> = {
+  '': 'Non renseignée',
+  'not-interested': 'Pas intéressé',
+  'no-budget': 'Pas de budget',
+  'wrong-contact': 'Mauvais contact',
+  'bad-timing': 'Mauvais timing',
+  'has-provider': 'Déjà un fournisseur',
+  other: 'Autre',
+}
+
+export const CALL_OBJECTIONS: Record<CallObjection, string> = {
+  '': 'Aucune',
+  price: 'Prix',
+  'no-need': 'Pas de besoin',
+  timing: 'Timing',
+  'has-provider': 'Déjà un fournisseur',
+  'decision-maker': 'Décideur',
+  other: 'Autre',
 }
 
 export const ACTIVITY_ICONS: Record<ActivityKind, string> = {
@@ -97,8 +136,20 @@ export const formatMoney = (value: number): string => currency.format(value || 0
 export const formatCompactMoney = (value: number): string =>
   value >= 1000 ? `${Math.round(value / 100) / 10} k€` : `${Math.round(value)} €`
 
+/**
+ * Une date sans heure (« 2026-08-22 ») est lue comme minuit UTC par le moteur
+ * JavaScript : à l'ouest de Greenwich elle s'afficherait la veille. On la
+ * reconstruit donc dans le fuseau local, les horodatages complets restant
+ * interprétés normalement.
+ */
+export const parseDay = (value: string): Date => {
+  const jour = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!jour) return new Date(value)
+  return new Date(Number(jour[1]), Number(jour[2]) - 1, Number(jour[3]))
+}
+
 export const formatDate = (iso: string): string =>
-  iso ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+  iso ? parseDay(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
 export const formatDateTime = (iso: string): string =>
   iso
@@ -110,19 +161,32 @@ export const formatTime = (iso: string): string =>
 
 export function relativeDays(iso: string): string {
   if (!iso) return '—'
-  const days = Math.round((new Date(iso).getTime() - Date.now()) / 86_400_000)
+  const days = Math.round((parseDay(iso).getTime() - Date.now()) / 86_400_000)
   if (days === 0) return "aujourd'hui"
   if (days === 1) return 'demain'
   if (days === -1) return 'hier'
   return days > 0 ? `dans ${days} j` : `il y a ${Math.abs(days)} j`
 }
 
-export const initials = (lead: Lead): string =>
-  (lead.company || lead.contact || '?')
+/** Jour au format AAAA-MM-JJ dans le fuseau local, pour les champs `date`. */
+export const todayKey = (date: Date = new Date()): string => {
+  const offset = date.getTimezoneOffset() * 60_000
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10)
+}
+
+/** Date courte « 14 mars », suffisante dans un tableau dense. */
+export const formatDayShort = (value: string): string =>
+  value ? parseDay(value).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—'
+
+/** Initiales d'un couple société / contact, sans passer par un lead complet. */
+export const initialsOf = (primary: string, fallback = ''): string =>
+  (primary || fallback || '?')
     .split(/\s+/)
     .slice(0, 2)
     .map((word) => word.charAt(0).toUpperCase())
     .join('')
+
+export const initials = (lead: Lead): string => initialsOf(lead.company, lead.contact)
 
 export const weightedValue = (lead: Lead): number => (lead.value * lead.probability) / 100
 

@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import type { Activity, AppState, CalendarEvent, Lead, Profile, Theme } from './types.js'
+import type { Activity, AppState, CalendarEvent, Call, Lead, Profile, Theme } from './types.js'
 
 const now = () => new Date().toISOString()
 
@@ -29,11 +29,12 @@ export const api = {
    * ne reçoit que ses leads, un admin les reçoit tous.
    */
   async loadState(): Promise<AppState> {
-    const [profilesRes, leadsRes, activitiesRes, eventsRes] = await Promise.all([
+    const [profilesRes, leadsRes, activitiesRes, eventsRes, callsRes] = await Promise.all([
       supabase.from('profiles').select('*').order('created_at', { ascending: true }),
       supabase.from('leads').select('*').order('createdAt', { ascending: false }),
       supabase.from('activities').select('*').order('createdAt', { ascending: false }),
       supabase.from('events').select('*').order('start', { ascending: true }),
+      supabase.from('calls').select('*').order('date', { ascending: false }),
     ])
 
     if (leadsRes.error) {
@@ -47,6 +48,10 @@ export const api = {
     const theme: Theme = profile?.theme ?? 'light'
     const activities = (activitiesRes.data || []) as (Activity & { leadId: string })[]
     const events = (eventsRes.data || []) as CalendarEvent[]
+    // La table des appels arrive avec la migration 005 : tant qu'elle n'est pas
+    // jouée, le reste de l'application doit continuer à se charger.
+    if (callsRes.error) console.warn('[crm] table des appels indisponible', callsRes.error.message)
+    const calls = (callsRes.data || []) as Call[]
 
     const leads: Lead[] = (leadsRes.data || []).map((lead: any) => ({
       ...lead,
@@ -62,6 +67,7 @@ export const api = {
       theme,
       leads,
       events,
+      calls,
       profile,
       members,
       ownerFilter: [],
@@ -249,6 +255,61 @@ export const api = {
       tags: Array.isArray(lead.tags) ? lead.tags : [],
       activities: (activities || []).map(({ leadId: _unused, ...a }) => a),
     }
+  },
+
+  /* ------------------------------------------------------- suivi d'appels */
+
+  /** Valeurs par défaut d'un appel : tout ce que la base attend, jamais `undefined`. */
+  async createCall(input: Partial<Call>): Promise<Call> {
+    const stamp = now()
+    const meeting = input.meeting ?? false
+    const callData = {
+      id: crypto.randomUUID(),
+      date: input.date || stamp.slice(0, 10),
+      contact: input.contact?.trim() ?? '',
+      company: input.company?.trim() ?? '',
+      phone: input.phone?.trim() ?? '',
+      outcome: input.outcome ?? 'no-answer',
+      conversation: input.conversation ?? false,
+      meeting,
+      meetingAt: input.meetingAt ?? '',
+      // Un rendez-vous obtenu rend la raison de refus sans objet.
+      reason: meeting ? '' : (input.reason ?? ''),
+      objection: input.objection ?? '',
+      notes: input.notes ?? '',
+      nextAction: input.nextAction?.trim() ?? '',
+      followUpAt: input.followUpAt ?? '',
+      leadId: input.leadId ?? null,
+      owner_id: input.owner_id ?? (await currentUserId()),
+      createdAt: stamp,
+      updatedAt: stamp,
+    }
+
+    const { data: created, error } = await supabase.from('calls').insert(callData).select().single()
+    if (error) throw new Error(error.message)
+    return created as Call
+  },
+
+  async updateCall(id: string, input: Partial<Call>): Promise<Call> {
+    const updatePayload: Record<string, unknown> = { ...input, updatedAt: now() }
+    delete updatePayload.id
+    delete updatePayload.createdAt
+    if (input.meeting) updatePayload.reason = ''
+
+    const { data: updated, error } = await supabase
+      .from('calls')
+      .update(updatePayload)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return updated as Call
+  },
+
+  async deleteCall(id: string): Promise<void> {
+    const { error } = await supabase.from('calls').delete().eq('id', id)
+    if (error) throw new Error(error.message)
   },
 
   async createEvent(input: Partial<CalendarEvent>): Promise<CalendarEvent> {

@@ -23,7 +23,7 @@ est appliqué par la Row Level Security de Supabase, et les comptes se créent d
 l'onglet **Réglages**. La mise en service est décrite dans
 [DEPLOIEMENT.md](DEPLOIEMENT.md).
 
-## Les trois espaces
+## Les espaces
 
 ### Tableau de bord
 
@@ -49,6 +49,21 @@ l'onglet **Réglages**. La mise en service est décrite dans
 Vue tableau de la même base : filtre par étape, recherche, tri sur chaque colonne, et actions
 rapides (planifier, modifier, supprimer).
 
+### Appels
+
+- Journal de prospection reprenant les treize colonnes du classeur de suivi, de la date
+  à la date de relance. La ligne bleue en haut du tableau enregistre un appel (Entrée
+  valide), et chaque cellule d'une ligne existante s'édite au clic.
+- Colonnes liées automatiquement, dans les deux sens : un rendez-vous pris implique une
+  conversation engagée et un appel décroché ; repasser en « sans réponse » remet le reste à zéro.
+- **Un rendez-vous obtenu alimente le pipeline** : le lead de la société passe en
+  « Qualifié », ou est créé à cette étape s'il n'existe pas encore, avec la source
+  « Cold call » et le rendez-vous inscrit dans son historique. Un lead déjà plus avancé
+  (proposition, négociation) n'est jamais ramené en arrière.
+- Six indicateurs (appels du jour, appels de la période, taux de réponse, conversations,
+  rendez-vous pris, taux de rendez-vous), rythme quotidien sur quatorze jours, et
+  classement des raisons de refus et des objections entendues.
+
 ### Agenda
 
 - Trois modes : mois, semaine, liste.
@@ -60,6 +75,7 @@ rapides (planifier, modifier, supprimer).
 
 - `n` — nouveau lead
 - `e` — nouveau rendez-vous
+- `a` — nouvel appel de prospection
 - `Échap` — fermer la modale ou le panneau latéral
 
 ## Architecture
@@ -69,6 +85,9 @@ rapides (planifier, modifier, supprimer).
 | `src/` | client TypeScript ; lit et écrit directement dans Supabase avec la clé publique |
 | `supabase/schema.sql` | tables métier (leads, activités, rendez-vous) |
 | `supabase/002-auth-multi-tenant.sql` | comptes, rôles, propriétaire des données et politiques RLS |
+| `supabase/004-type-offre.sql` | type d'offre proposée (logiciel / audit) |
+| `supabase/005-suivi-appels.sql` | table `calls` du suivi d'appels et sa RLS |
+| `src/leadFromCall.ts` | pont entre le suivi d'appels et le pipeline (rendez-vous → lead qualifié) |
 | `api/admin/users.ts` | fonction serverless Vercel : création et gestion des comptes (clé `service_role`) |
 | `server/index.ts` | ancienne API Express sur fichier JSON, conservée pour référence, plus utilisée |
 

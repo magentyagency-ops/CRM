@@ -765,3 +765,309 @@ body[data-theme="sunset"] { --chart-ramp: #d57700 }
   .chart-bar { grid-template-columns: 96px 1fr 84px; gap: 8px }
   .chart-columns { height: 150px }
 }
+
+/* ========================================================= suivi d'appels */
+/* Six indicateurs : le suivi d'appels se lit d'un coup d'œil, du volume brut
+   au taux de transformation, sans avoir à faire défiler la page. */
+.metrics.six { grid-template-columns: repeat(6, 1fr) }
+.metrics.six .metric { padding: 15px }
+.metrics.six .metric strong { font-size: 21px }
+
+.call-card { margin-top: 18px }
+.call-card .card-head { align-items: center }
+#view-calls .head-actions .btn { white-space: nowrap }
+#view-calls .field.search { width: 190px }
+
+/* ------------------------------------------------------------ la grille */
+/* Treize colonnes : la table défile horizontalement plutôt que de comprimer
+   les libellés, et chaque colonne garde la largeur de ce qu'elle contient. */
+.call-table { min-width: 1480px; table-layout: fixed }
+/* Des colonnes étroites imposent des en-têtes sur deux lignes plutôt que des
+   libellés tronqués qui se chevauchent. */
+.call-table th {
+  padding: 6px 8px 10px; font-size: 8px; letter-spacing: .05em;
+  white-space: normal; line-height: 1.35; vertical-align: bottom;
+}
+.call-table td { padding: 0; font-size: 11px; vertical-align: middle }
+.call-table tbody tr { cursor: default }
+
+/* Treize colonnes ne tiennent pas dans la fenêtre : la date et les actions
+   restent accrochées aux bords pendant le défilement latéral, pour garder un
+   repère à gauche et les commandes de ligne à portée à droite.
+   Les couleurs de l'interface sont translucides ; une cellule figée doit être
+   franchement opaque, sinon le texte qui défile dessous transparaît. D'où la
+   teinte de fond du thème (--solid) posée sous la couleur de champ. */
+:root { --solid: #fbfdff }
+body[data-theme="midnight"] { --solid: #16233a }
+body[data-theme="ocean"] { --solid: #f6fdff }
+body[data-theme="sunset"] { --solid: #fffaf0 }
+
+.call-table .col-date, .call-table .col-actions {
+  position: sticky; z-index: 2;
+  background-color: var(--solid);
+  background-image: linear-gradient(var(--field), var(--field));
+}
+.call-table .col-date { left: 0; box-shadow: 1px 0 0 var(--hair) }
+.call-table .col-actions { right: 0; box-shadow: -1px 0 0 var(--hair) }
+.call-table thead .col-date, .call-table thead .col-actions { z-index: 3 }
+.call-quick .col-date, .call-quick .col-actions {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--blue) 5%, var(--field)),
+    color-mix(in srgb, var(--blue) 5%, var(--field)));
+}
+
+/* Une date complète en chasse fixe ne doit pas être tronquée. */
+.call-table .col-date { width: 104px }
+.call-table .col-meetingAt, .call-table .col-followUpAt { width: 100px }
+.call-table .col-contact, .call-table .col-company { width: 124px }
+.call-table .col-phone { width: 122px }
+.call-table .col-outcome { width: 118px }
+.call-table .col-conversation, .call-table .col-meeting { width: 84px }
+.call-table .col-reason, .call-table .col-objection { width: 112px }
+.call-table .col-notes, .call-table .col-nextAction { width: 146px }
+.call-table .col-owner { width: 96px }
+.call-table .col-actions { width: 76px }
+
+/* --------------------------------------------------- cellules éditables */
+/* Chaque cellule est un champ qui s'ignore : elle ne se signale qu'au survol,
+   pour que le tableau reste un tableau et pas un formulaire de 13 colonnes. */
+.cell-edit {
+  position: relative;
+  padding: 10px 9px !important;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: text;
+  border-radius: 8px;
+  transition: background .16s var(--ease), box-shadow .16s var(--ease);
+}
+.cell-edit:hover {
+  background: color-mix(in srgb, var(--blue) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 24%, transparent);
+}
+.cell-edit b { font-weight: 700; letter-spacing: -.02em }
+.cell-edit .num { font: 500 10px 'DM Mono' }
+.cell-void { color: color-mix(in srgb, var(--muted) 62%, transparent) }
+/* Les colonnes à pastille se pilotent au clic, pas au curseur texte. */
+.col-outcome, .col-conversation, .col-meeting, .col-reason, .col-objection { cursor: pointer }
+
+.cell-edit.editing { padding: 4px !important; background: color-mix(in srgb, var(--blue) 6%, transparent); overflow: visible }
+.cell-input {
+  width: 100%; padding: 6px 7px;
+  border-radius: 7px; font-size: 11px;
+  border-color: color-mix(in srgb, var(--blue) 45%, transparent);
+}
+.cell-input:disabled { opacity: .45; cursor: not-allowed }
+
+/* ------------------------------------------------------- ligne d'ajout */
+/* Elle reproduit le geste du tableur : toujours prête à recevoir un appel,
+   distinguée du journal par son fond teinté. */
+.call-quick td {
+  padding: 8px 5px;
+  border-top: 0;
+  border-bottom: 1px solid var(--hair);
+  background: color-mix(in srgb, var(--blue) 5%, transparent);
+  vertical-align: middle;
+}
+.call-quick td:first-child { border-radius: 12px 0 0 12px; padding-left: 8px }
+.call-quick td:last-child { border-radius: 0 12px 12px 0; padding-right: 8px }
+.call-quick .field { padding: 7px 8px; font-size: 11px }
+.call-quick #quickAdd { width: 100%; padding: 8px 10px; white-space: nowrap }
+.call-quick #quickAdd i { margin: 0 }
+
+/* --------------------------------------------------- interrupteurs fiche */
+.toggle-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px }
+.toggle {
+  display: flex; align-items: flex-start; gap: 9px; padding: 10px 12px;
+  border: 1px solid var(--hair); border-radius: 12px;
+  background: var(--surface); cursor: pointer; transition: .2s var(--ease);
+}
+.toggle:hover { border-color: color-mix(in srgb, var(--blue) 40%, transparent) }
+.toggle:has(input:checked) { background: color-mix(in srgb, var(--blue) 9%, var(--surface)) }
+.toggle:has(input:disabled) { opacity: .5; cursor: not-allowed }
+.toggle input { accent-color: var(--blue); width: 15px; height: 15px; margin-top: 2px }
+.toggle b { display: block; font-size: 11px; letter-spacing: -.02em }
+.toggle small { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; line-height: 1.5 }
+
+/* ------------------------------------------------------- rythme d'appels */
+/* La part transformée en rendez-vous se lit dans la barre elle-même : deux
+   séries empilées valent mieux que deux graphiques à comparer de l'œil. */
+.chart-column-fill.call-column { position: relative; overflow: hidden }
+.call-column-meetings {
+  position: absolute; right: 0; bottom: 0; left: 0;
+  background: var(--green);
+}
+
+/* `.table .cell-name span` passe tous les spans en display:block et l'emporte sur
+   `.lead-avatar` : sans ce rappel, les initiales sortent de la pastille au lieu
+   d'y être centrées. L'avatar garde aussi sa taille quand la colonne se resserre. */
+.table .cell-name .lead-avatar { display: grid; place-items: center; flex: 0 0 auto }
+
+@media (max-width: 1280px) {
+  .metrics.six { grid-template-columns: repeat(3, 1fr) }
+}
+@media (max-width: 780px) {
+  .metrics.six { grid-template-columns: repeat(2, 1fr) }
+  .toggle-row { grid-template-columns: 1fr }
+}
+
+/* ================================================= contrôles (rien de système) */
+/* Les éléments de formulaire natifs apportent chacun leur propre dessin : flèche
+   du système sur les listes, icône de calendrier, case à cocher grise. Ils sont
+   tous repris ici pour que l'interface n'ait qu'un seul langage visuel. */
+
+/* ---------------------------------------------------------- listes déroulantes */
+/* Le select reste dans le DOM pour les formulaires, mais c'est le bouton qui
+   s'affiche et le menu de `select.ts` qui se déroule. */
+.select-shell { position: relative; width: 100% }
+.select-shell > select.field {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0; pointer-events: none;
+}
+
+.select-btn {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--hair); border-radius: 9px;
+  background: var(--field); color: var(--ink);
+  font: 700 11px Manrope; text-align: left; cursor: pointer;
+  transition: border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
+}
+.select-btn:hover { border-color: color-mix(in srgb, var(--blue) 42%, transparent) }
+.select-shell.open .select-btn,
+.select-btn:focus-visible {
+  outline: 0;
+  border-color: color-mix(in srgb, var(--blue) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 13%, transparent);
+}
+.select-shell.disabled { opacity: .5 }
+.select-shell.disabled .select-btn { cursor: not-allowed }
+
+.select-value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+
+/* Chevron dessiné en CSS : il suit la couleur du thème, contrairement à une
+   image de fond dont la teinte serait figée. */
+.select-caret {
+  width: 8px; height: 8px; flex: 0 0 auto;
+  border: solid var(--muted); border-width: 0 1.6px 1.6px 0;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform .2s var(--ease), border-color .2s var(--ease);
+}
+.select-btn:hover .select-caret { border-color: var(--blue) }
+.select-shell.open .select-caret { border-color: var(--blue); transform: translateY(1px) rotate(-135deg) }
+
+.select-menu {
+  position: fixed; z-index: 120;
+  max-height: 292px; overflow-y: auto;
+  padding: 6px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--glass);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 18px 44px rgba(24, 74, 124, .18);
+  animation: pop .18s var(--ease);
+}
+.select-option {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 8px 9px; border: 0; border-radius: 9px;
+  background: transparent; color: var(--ink);
+  font: 600 11px Manrope; text-align: left; cursor: pointer;
+}
+.select-option span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.select-option.active { background: color-mix(in srgb, var(--blue) 11%, transparent) }
+.select-option[aria-selected="true"] { color: var(--blue); font-weight: 800 }
+.select-option i { font-size: 13px; opacity: 0 }
+.select-option[aria-selected="true"] i { opacity: 1 }
+.select-option:disabled { opacity: .4; cursor: not-allowed }
+
+/* Contextes serrés : la grille d'appels et sa ligne d'ajout. */
+.cell-edit .select-btn, .call-quick .select-btn { padding: 6px 8px; font-size: 11px }
+.head-actions .select-shell { width: 190px }
+/* Enveloppe d'un champ que le code masque ou affiche (filtre réservé à l'admin). */
+.field-slot { display: block; width: 190px }
+/* L'historique du panneau latéral : le type d'entrée garde sa largeur fixe,
+   la saisie prend le reste. */
+.activity-form .select-shell { width: 112px; flex: 0 0 auto }
+.activity-form .field { flex: 1 }
+
+/* ------------------------------------------------------------------ dates */
+/* L'indicateur natif impose son icône et sa couleur : on le masque et on ouvre
+   le sélecteur au clic sur tout le champ (voir `initDateFields`). */
+input[type="date"] {
+  position: relative;
+  cursor: pointer; font: 500 11px 'DM Mono';
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23627d98' stroke-width='1.9' stroke-linecap='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='3'/%3E%3Cpath d='M3.5 9.7h17M8.2 3.4v3M15.8 3.4v3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 14px;
+}
+body[data-theme="midnight"] input[type="date"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aebed0' stroke-width='1.9' stroke-linecap='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='3'/%3E%3Cpath d='M3.5 9.7h17M8.2 3.4v3M15.8 3.4v3'/%3E%3C/svg%3E");
+}
+/* Colonnes serrées de la grille : la date seule, sans icône. */
+.call-table input[type="date"] { font-size: 10px; padding-right: 8px; background-image: none }
+/* L'indicateur du système est rendu transparent et étiré : le calendrier
+   s'ouvre depuis n'importe quel point du champ, sans son icône imposée. */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute; inset: 0;
+  width: auto; height: auto; margin: 0; padding: 0;
+  opacity: 0; cursor: pointer;
+}
+input[type="date"]::-webkit-datetime-edit { color: var(--ink) }
+input[type="date"]:invalid::-webkit-datetime-edit { color: var(--muted) }
+
+/* ------------------------------------------------------------- cases à cocher */
+.toggle input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 17px; height: 17px; flex: 0 0 auto;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 45%, transparent);
+  border-radius: 6px; background: var(--field);
+  cursor: pointer; transition: .18s var(--ease);
+}
+.toggle input[type="checkbox"]:checked {
+  border-color: var(--blue);
+  background: var(--blue);
+  /* La coche est un tracé vectoriel : un pseudo-élément sur une case cochée
+     n'est pas rendu de la même façon par tous les moteurs. Le blanc tient sur
+     le bleu quel que soit le thème. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.2 8.4l3.1 3.1 6.4-6.9' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 12px; background-position: center; background-repeat: no-repeat;
+}
+.toggle input[type="checkbox"]:focus-visible { outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 18%, transparent) }
+
+/* ---------------------------------------------------------------- boutons */
+/* Même famille que les champs : bord fin, angle de 10 px, une seule ombre
+   portée qui s'accentue au survol. Le bouton principal porte un dégradé très
+   court, assez pour le détacher sans le rendre bavard. */
+.btn {
+  padding: 9px 13px;
+  font-weight: 800; letter-spacing: -.01em;
+  box-shadow: 0 1px 2px rgba(20, 70, 120, .05);
+}
+.btn:hover { border-color: color-mix(in srgb, var(--blue) 30%, var(--hair)); box-shadow: 0 8px 18px rgba(32, 84, 138, .14) }
+.btn:active { transform: translateY(0) scale(.97) }
+.btn:focus-visible { outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 20%, transparent) }
+.btn.primary {
+  border-color: transparent;
+  background: linear-gradient(180deg, #1a7fe8, #0063cf);
+  box-shadow: 0 6px 16px rgba(0, 107, 220, .28), inset 0 1px 0 rgba(255, 255, 255, .18);
+}
+.btn.primary:hover { background: linear-gradient(180deg, #2b8bef, #0059bb); box-shadow: 0 10px 22px rgba(0, 107, 220, .34) }
+.btn.danger:hover { border-color: color-mix(in srgb, var(--red) 40%, transparent); background: color-mix(in srgb, var(--red) 8%, var(--surface)) }
+.btn.ghost:hover { background: color-mix(in srgb, var(--blue) 8%, transparent); box-shadow: none }
+
+.icon-btn { transition: .2s var(--ease) }
+.icon-btn:hover { border-color: color-mix(in srgb, var(--blue) 35%, transparent); color: var(--blue); transform: translateY(-1px) }
+.icon-btn:active { transform: scale(.94) }
+.icon-btn:focus-visible { outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 18%, transparent) }
+
+/* Segmenté : la pastille active est portée par une ombre, pas par un aplat. */
+.segmented { padding: 3px; border-radius: 12px; background: color-mix(in srgb, var(--muted) 10%, transparent) }
+.seg {
+  border: 0; border-radius: 9px; padding: 7px 11px;
+  background: transparent; color: var(--muted);
+  font: 800 10px Manrope; cursor: pointer;
+  transition: .2s var(--ease);
+}
+.seg:hover { color: var(--ink) }
+.seg.active { background: var(--field); color: var(--blue); box-shadow: 0 2px 6px rgba(24, 74, 124, .12) }

@@ -1,19 +1,21 @@
 import { api } from './api.js'
 import { currentProfile, onAuthChange, sendPasswordReset, signIn, signOut, updateOwnPassword } from './auth.js'
 import { initDrawer } from './drawer.js'
-import { openEventForm, openLeadForm } from './forms.js'
+import { openCallForm, openEventForm, openLeadForm } from './forms.js'
 import { closeModal, initOverlays, openModal } from './modal.js'
+import { initDateFields, initSelects } from './select.js'
 import { hydrate, isAdmin, notify, state } from './store.js'
 import type { Theme } from './types.js'
 import { $, $$, escapeHtml, toast } from './ui.js'
 import { initAdmin, loadMembers } from './views/admin.js'
 import { initCalendar } from './views/calendar.js'
+import { initCalls } from './views/calls.js'
 import { initDashboard } from './views/dashboard.js'
 import { initLeads } from './views/leads.js'
 import { initPipeline } from './views/pipeline.js'
 import { initStats } from './views/stats.js'
 
-const VIEWS = ['dashboard', 'pipeline', 'leads', 'calendar', 'stats', 'admin']
+const VIEWS = ['dashboard', 'pipeline', 'leads', 'calls', 'calendar', 'stats', 'admin']
 
 /* ------------------------------------------------------------ navigation */
 
@@ -40,6 +42,7 @@ function initNavigation(): void {
     const action = target.closest<HTMLElement>('[data-action]')?.dataset.action
     if (action === 'new-lead') openLeadForm()
     if (action === 'new-event') openEventForm()
+    if (action === 'new-call') openCallForm()
   })
 
   const initial = window.location.hash.replace('#', '')
@@ -93,6 +96,10 @@ function initShortcuts(): void {
     if (event.key === 'e') {
       event.preventDefault()
       openEventForm()
+    }
+    if (event.key === 'a') {
+      event.preventDefault()
+      openCallForm()
     }
   })
 }
@@ -261,6 +268,8 @@ async function load(): Promise<void> {
 
 async function boot(): Promise<void> {
   initOverlays()
+  initSelects()
+  initDateFields()
   initNavigation()
   initTheme()
   initShortcuts()
@@ -270,6 +279,7 @@ async function boot(): Promise<void> {
   initDashboard()
   initPipeline()
   initLeads()
+  initCalls()
   initCalendar()
   initStats()
   initAdmin(showView)

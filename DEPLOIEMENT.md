@@ -30,7 +30,19 @@ seule détentrice de la clé `service_role`. Dans Vercel → **Settings → Envi
 Variables**, ajouter pour les environnements Production et Preview :
 
 | Variable | Valeur | Où la trouver |
-| --- | --- | --- |
+| ---
+
+## 1 bis. Suivi des appels
+
+La section **Appels** a besoin de sa propre table. Toujours dans le **SQL Editor**,
+exécuter [`supabase/005-suivi-appels.sql`](supabase/005-suivi-appels.sql) : il crée la
+table `calls` (une ligne par appel de prospection) et la politique RLS qui la cloisonne
+comme les leads — chacun ses appels, l'administrateur voit ceux de toute l'équipe.
+
+Tant que ce script n'est pas joué, le reste de l'application continue de fonctionner :
+la section Appels s'affiche simplement vide.
+
+--- | --- | --- |
 | `SUPABASE_URL` | l'URL du projet | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | la clé `service_role` | Supabase → Settings → API |
 | `VITE_SUPABASE_URL` | la même URL | idem |

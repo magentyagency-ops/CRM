@@ -17,6 +17,7 @@ import {
   toast,
   viewIsActive,
 } from '../ui.js'
+import { enhanceSelects } from '../select.js'
 import { matchesSearch } from './pipeline.js'
 
 type SortKey = 'contact' | 'company' | 'stage' | 'value' | 'probability' | 'expectedCloseAt' | 'updatedAt'
@@ -40,6 +41,7 @@ export function initLeads(): void {
     render()
   })
 
+  enhanceSelects(stageSelect.parentElement ?? document)
   stageSelect.addEventListener('change', () => {
     stageFilter = stageSelect.value
     render()

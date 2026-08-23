@@ -1,4 +1,4 @@
-import type { AppState, CalendarEvent, Lead, Profile } from './types.js'
+import type { AppState, CalendarEvent, Call, Lead, Profile } from './types.js'
 
 type Listener = () => void
 
@@ -8,6 +8,7 @@ export const state: AppState = {
   theme: 'light',
   leads: [],
   events: [],
+  calls: [],
   profile: null,
   members: [],
   ownerFilter: [],
@@ -25,6 +26,7 @@ export function hydrate(next: AppState): void {
   state.theme = next.theme
   state.leads = next.leads
   state.events = next.events
+  state.calls = next.calls
   state.profile = next.profile
   state.members = next.members
   // Un filtre pointant vers un compte disparu serait invisible : on le nettoie.
@@ -78,6 +80,18 @@ export function upsertEvent(event: CalendarEvent): void {
 
 export function removeEvent(id: string): void {
   state.events = state.events.filter((item) => item.id !== id)
+  notify()
+}
+
+export function upsertCall(call: Call): void {
+  const index = state.calls.findIndex((item) => item.id === call.id)
+  if (index === -1) state.calls.unshift(call)
+  else state.calls[index] = call
+  notify()
+}
+
+export function removeCall(id: string): void {
+  state.calls = state.calls.filter((item) => item.id !== id)
   notify()
 }
 

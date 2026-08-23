@@ -131,7 +131,7 @@ function renderDrawer(): void {
 
     <p class="section-title">Historique</p>
     <form class="activity-form" id="activityForm">
-      <select class="field" id="activityKind" style="width:110px">
+      <select class="field" id="activityKind">
         <option value="note">Note</option>
         <option value="call">Appel</option>
         <option value="email">Email</option>

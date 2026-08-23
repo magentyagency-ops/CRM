@@ -48,6 +48,7 @@
         <button class="nav-btn active" data-view="dashboard"><i class="ri-layout-grid-line"></i><span>Tableau de bord</span></button>
         <button class="nav-btn" data-view="pipeline"><i class="ri-flow-chart"></i><span>Pipeline</span></button>
         <button class="nav-btn" data-view="leads"><i class="ri-contacts-book-3-line"></i><span>Leads</span></button>
+        <button class="nav-btn" data-view="calls"><i class="ri-phone-line"></i><span>Appels</span></button>
         <button class="nav-btn" data-view="calendar"><i class="ri-calendar-event-line"></i><span>Agenda</span></button>
         <button class="nav-btn" data-view="stats"><i class="ri-bar-chart-2-line"></i><span>Stats</span></button>
         <button class="nav-btn admin-only" data-view="admin" hidden><i class="ri-shield-user-line"></i><span>Réglages</span></button>
@@ -187,6 +188,71 @@
           </div>
           <div id="leadTableEmpty"></div>
         </section>
+      </section>
+
+      <!-- ------------------------------------------------ suivi des appels -->
+      <section class="view" id="view-calls">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Prospection téléphonique</p>
+            <h1>Suivi des appels</h1>
+            <p>Un appel par ligne, comme dans le classeur de suivi. Remplis la ligne bleue pour enregistrer, puis clique dans n'importe quelle cellule pour la corriger.</p>
+          </div>
+          <div class="head-actions">
+            <input class="field search" id="callSearch" type="search" placeholder="Entreprise, contact, numéro…">
+            <select class="field" id="callOutcomeFilter"></select>
+            <span class="field-slot admin-only" id="callOwnerSlot" hidden><select class="field" id="callOwnerFilter"></select></span>
+            <button class="btn primary" data-action="new-call"><i class="ri-add-line"></i>Nouvel appel</button>
+          </div>
+        </header>
+
+        <div class="metrics six" id="callMetrics"></div>
+
+        <section class="card glass call-card">
+          <div class="card-head">
+            <div><h2>Journal d'appels</h2><p>Treize colonnes éditables : Entrée valide, Échap annule, Tab passe à la cellule suivante.</p></div>
+            <div class="segmented" id="callPeriods"></div>
+          </div>
+          <!-- Entreprises déjà connues, proposées à la saisie de la ligne d'ajout. -->
+          <datalist id="callCompanies"></datalist>
+          <div class="table-wrap">
+            <table class="table call-table" id="callTable">
+              <thead>
+                <tr>
+                  <th class="col-date">Date</th>
+                  <th class="col-contact">Nom du contact</th>
+                  <th class="col-company">Entreprise</th>
+                  <th class="col-phone">Téléphone</th>
+                  <th class="col-outcome">Résultat de l'appel</th>
+                  <th class="col-conversation">Conversation</th>
+                  <th class="col-meeting">RDV pris</th>
+                  <th class="col-meetingAt">Date du RDV</th>
+                  <th class="col-reason">Si pas de RDV : raison</th>
+                  <th class="col-objection">Objections</th>
+                  <th class="col-notes">Notes d'appel</th>
+                  <th class="col-nextAction">Prochaine action</th>
+                  <th class="col-followUpAt">Relance</th>
+                  <th class="admin-col col-owner" hidden>Appelant</th>
+                  <th class="col-actions"></th>
+                </tr>
+              </thead>
+              <!-- La ligne de saisie est fabriquée par la vue : elle partage ses
+                   listes déroulantes avec l'édition en ligne et la fiche complète. -->
+              <tbody><tr class="call-quick" id="callQuickRow"></tr></tbody>
+              <tbody id="callTableBody"></tbody>
+            </table>
+          </div>
+          <div id="callTableEmpty"></div>
+        </section>
+
+        <section class="card glass chart-card">
+          <div class="card-head">
+            <div><h2>Rythme de prospection</h2><p>Volume quotidien des 14 derniers jours et part transformée en rendez-vous.</p></div>
+          </div>
+          <div id="callRhythm"></div>
+        </section>
+
+        <div class="grid two" id="callInsights" style="margin-top:18px"></div>
       </section>
 
       <!-- --------------------------------------------------------- agenda -->

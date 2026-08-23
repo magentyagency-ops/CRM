@@ -4,6 +4,12 @@ export type Priority = 'low' | 'medium' | 'high'
 /** Nature de ce qui est proposé au prospect. '' = non renseigné. */
 export type Offer = '' | 'logiciel' | 'audit'
 export type EventKind = 'call' | 'meeting' | 'demo' | 'followup' | 'internal'
+/** Issue d'un appel de prospection, reprise des listes du suivi d'appels. */
+export type CallOutcome = 'no-answer' | 'voicemail' | 'answered'
+/** Raison invoquée quand l'appel n'aboutit pas à un rendez-vous. '' = non renseignée. */
+export type CallReason = '' | 'not-interested' | 'no-budget' | 'wrong-contact' | 'bad-timing' | 'has-provider' | 'other'
+/** Objection principale entendue pendant la conversation. '' = aucune. */
+export type CallObjection = '' | 'price' | 'no-need' | 'timing' | 'has-provider' | 'decision-maker' | 'other'
 export type ActivityKind = 'note' | 'call' | 'email' | 'meeting' | 'stage'
 
 export interface Activity {
@@ -53,6 +59,31 @@ export interface CalendarEvent {
   updatedAt: string
 }
 
+/** Un appel de prospection : une ligne du tableau de suivi. */
+export interface Call {
+  id: string
+  /** Jour de l'appel au format AAAA-MM-JJ. */
+  date: string
+  contact: string
+  company: string
+  phone: string
+  outcome: CallOutcome
+  conversation: boolean
+  meeting: boolean
+  /** Date du rendez-vous obtenu, vide sinon. */
+  meetingAt: string
+  reason: CallReason
+  objection: CallObjection
+  notes: string
+  nextAction: string
+  followUpAt: string
+  /** Opportunité du pipeline née de cet appel, ou null. */
+  leadId: string | null
+  owner_id: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export type Role = 'admin' | 'user'
 
 export interface Profile {
@@ -81,6 +112,7 @@ export interface AppState {
   theme: Theme
   leads: Lead[]
   events: CalendarEvent[]
+  calls: Call[]
   /** Compte connecté, ou null tant que la session n'est pas établie. */
   profile: Profile | null
   /** Comptes visibles : tous pour un admin, uniquement le sien pour un user. */

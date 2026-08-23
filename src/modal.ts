@@ -1,3 +1,4 @@
+import { enhanceSelects, fermer as fermerSelect } from './select.js'
 import { $ } from './ui.js'
 
 const modal = () => $('#modal')
@@ -9,12 +10,16 @@ export function openModal(html: string): HTMLElement {
   const panel = modalPanel()
   panel.innerHTML = html
   modal().setAttribute('aria-hidden', 'false')
-  const firstField = panel.querySelector<HTMLElement>('input, textarea, select')
+  enhanceSelects(panel)
+  // Le select natif est masqué : c'est son bouton qui peut recevoir le focus.
+  const firstField = panel.querySelector<HTMLElement>('input, textarea, .select-btn')
   firstField?.focus()
   return panel
 }
 
 export function closeModal(): void {
+  // Un menu déroulant vit sur <body> : il survivrait à la fermeture de sa modale.
+  fermerSelect()
   modal().setAttribute('aria-hidden', 'true')
   modalPanel().innerHTML = ''
 }
@@ -24,11 +29,13 @@ export const isModalOpen = (): boolean => modal().getAttribute('aria-hidden') ==
 export function openDrawer(html: string): HTMLElement {
   const panel = drawerPanel()
   panel.innerHTML = html
+  enhanceSelects(panel)
   drawer().setAttribute('aria-hidden', 'false')
   return panel
 }
 
 export function closeDrawer(): void {
+  fermerSelect()
   drawer().setAttribute('aria-hidden', 'true')
   drawerPanel().innerHTML = ''
 }
