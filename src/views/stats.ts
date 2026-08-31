@@ -130,7 +130,9 @@ function renderKpis(leads: Lead[]): void {
   const clos = gagnes.length + perdus.length
   const tauxConversion = clos ? Math.round((gagnes.length / clos) * 100) : 0
   const panierMoyen = gagnes.length ? gagnes.reduce((somme, lead) => somme + lead.value, 0) / gagnes.length : 0
-  const pipelinePondere = ouverts.reduce((somme, lead) => somme + (lead.value * lead.probability) / 100, 0)
+  // La probabilité porte sur la signature du deal, pas sur une fraction du
+  // montant : additionner des montants rabotés ne décrit rien de réel.
+  const pipelineOuvert = ouverts.reduce((somme, lead) => somme + lead.value, 0)
 
   const delais = gagnes
     .map((lead) => {
@@ -146,8 +148,8 @@ function renderKpis(leads: Lead[]): void {
       <span class="metric-trend">${gagnes.length} gagné(s) sur ${clos} clôturé(s)</span></article>
     <article class="metric glass"><small>Panier moyen signé</small><strong>${formatCompactMoney(panierMoyen)}</strong>
       <span class="metric-trend">${gagnes.length} affaire(s) signée(s)</span></article>
-    <article class="metric glass"><small>Pipeline pondéré</small><strong>${formatCompactMoney(pipelinePondere)}</strong>
-      <span class="metric-trend">${ouverts.length} opportunité(s) ouverte(s)</span></article>
+    <article class="metric glass"><small>Pipeline ouvert</small><strong>${formatCompactMoney(pipelineOuvert)}</strong>
+      <span class="metric-trend">${ouverts.length} opportunité(s) en cours</span></article>
     <article class="metric glass"><small>Cycle de vente moyen</small><strong>${cycleMoyen === null ? '—' : `${cycleMoyen} j`}</strong>
       <span class="metric-trend">${cycleMoyen === null ? 'aucune signature datée' : 'de la création à la signature'}</span></article>`
 }

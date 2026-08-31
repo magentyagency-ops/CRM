@@ -1,5 +1,10 @@
 export type Theme = 'light' | 'midnight' | 'ocean' | 'sunset'
-export type Stage = 'new' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost'
+/**
+ * Étapes du pipeline. R1 et R2 sont le premier et le second rendez-vous : le
+ * cycle de vente se raconte par les rendez-vous obtenus, pas par l'envoi d'une
+ * proposition.
+ */
+export type Stage = 'qualified' | 'r1' | 'r2' | 'negotiation' | 'won' | 'lost'
 export type Priority = 'low' | 'medium' | 'high'
 /** Nature de ce qui est proposé au prospect. '' = non renseigné. */
 export type Offer = '' | 'logiciel' | 'audit'

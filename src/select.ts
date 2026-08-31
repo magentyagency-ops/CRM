@@ -204,8 +204,14 @@ export function initSelects(): void {
     }
   }, true)
 
+  // Le menu vit sur <body>, donc en dehors de son enveloppe : sans l'exclure
+  // ici, un clic sur une option refermait le menu dès l'enfoncement du bouton
+  // et le clic ne parvenait jamais à l'option — la sélection était impossible.
   document.addEventListener('mousedown', (event) => {
-    if (ouverture && !ouverture.shell.contains(event.target as Node)) fermer()
+    if (!ouverture) return
+    const cible = event.target as Node
+    if (ouverture.shell.contains(cible) || ouverture.menu.contains(cible)) return
+    fermer()
   })
 
   // Un menu posé en position fixe ne suit pas la page : on le referme plutôt
@@ -217,23 +223,4 @@ export function initSelects(): void {
   window.addEventListener('resize', fermer)
 
   enhanceSelects()
-}
-
-/* -------------------------------------------------------------- dates */
-
-/**
- * Un champ date n'ouvre son calendrier qu'au clic sur la petite icône du
- * système. On l'ouvre depuis n'importe quel point du champ : la cible est
- * bien plus grande, et le geste devient le même que pour une liste déroulante.
- */
-export function initDateFields(): void {
-  document.addEventListener('click', (event) => {
-    const champ = (event.target as HTMLElement).closest<HTMLInputElement>('input[type="date"]')
-    if (!champ || champ.disabled || champ.readOnly) return
-    try {
-      champ.showPicker()
-    } catch {
-      /* Navigateur sans `showPicker` (Safari) : la saisie au clavier suffit. */
-    }
-  })
 }

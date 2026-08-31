@@ -87,10 +87,11 @@ export function openLeadForm(lead?: Lead): void {
         <div class="field-group"><label for="f-email">Email</label>
           <input class="field" id="f-email" name="email" type="email" value="${escapeHtml(lead?.email ?? '')}" placeholder="camille@acme.fr"></div>
         <div class="field-group"><label for="f-phone">Téléphone</label>
-          <input class="field" id="f-phone" name="phone" value="${escapeHtml(lead?.phone ?? '')}" placeholder="+33 6 12 34 56 78"></div>
+          <input class="field" id="f-phone" name="phone" type="tel" inputmode="tel"
+            value="${escapeHtml(lead?.phone ?? '')}" placeholder="+33 6 12 34 56 78"></div>
         <div class="field-group"><label for="f-stage">Étape</label>
           <select class="field" id="f-stage" name="stage">
-            ${STAGES.map((item) => option(item.id, item.label, (lead?.stage ?? 'new') === item.id)).join('')}
+            ${STAGES.map((item) => option(item.id, item.label, (lead?.stage ?? 'qualified') === item.id)).join('')}
           </select></div>
         <div class="field-group"><label for="f-priority">Priorité</label>
           <select class="field" id="f-priority" name="priority">
@@ -105,9 +106,9 @@ export function openLeadForm(lead?: Lead): void {
               .join('')}
           </select></div>
         <div class="field-group"><label for="f-value">Valeur (€)</label>
-          <input class="field" id="f-value" name="value" type="number" min="0" step="100" value="${lead?.value ?? 0}"></div>
+          <input class="field" id="f-value" name="value" type="number" min="0" step="1" value="${lead?.value ?? 0}"></div>
         <div class="field-group"><label for="f-probability">Probabilité (%)</label>
-          <input class="field" id="f-probability" name="probability" type="number" min="0" max="100" step="5" value="${lead?.probability ?? 10}"></div>
+          <input class="field" id="f-probability" name="probability" type="number" min="0" max="100" step="1" value="${lead?.probability ?? 30}"></div>
         <div class="field-group"><label for="f-source">Source</label>
           <input class="field" id="f-source" name="source" value="${escapeHtml(lead?.source ?? 'Direct')}" placeholder="Site web, référence…"></div>
         <div class="field-group"><label for="f-close">Clôture estimée</label>
@@ -170,7 +171,7 @@ export function openLeadForm(lead?: Lead): void {
       email: String(data.get('email') ?? '').trim(),
       phone: String(data.get('phone') ?? '').trim(),
       source: String(data.get('source') ?? '').trim(),
-      stage: (data.get('stage') as Stage) ?? 'new',
+      stage: (data.get('stage') as Stage) ?? 'qualified',
       priority: (data.get('priority') as Priority) ?? 'medium',
       offer: (data.get('offer') as Offer) ?? '',
       value: Number(data.get('value') ?? 0),
@@ -366,7 +367,8 @@ export function openCallForm(call?: Call, defaults?: Partial<Call>): void {
         <div class="field-group"><label for="c-contact">Nom du contact</label>
           <input class="field" id="c-contact" name="contact" value="${escapeHtml(base.contact ?? '')}" placeholder="Camille Durand"></div>
         <div class="field-group"><label for="c-phone">Numéro de téléphone</label>
-          <input class="field" id="c-phone" name="phone" value="${escapeHtml(base.phone ?? '')}" placeholder="+33 6 12 34 56 78"></div>
+          <input class="field" id="c-phone" name="phone" type="tel" inputmode="tel"
+            value="${escapeHtml(base.phone ?? '')}" placeholder="+33 6 12 34 56 78"></div>
         <div class="field-group"><label for="c-outcome">Résultat de l'appel</label>
           <select class="field" id="c-outcome" name="outcome">
             ${(Object.keys(CALL_OUTCOMES) as CallOutcome[])

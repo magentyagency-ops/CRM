@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { normaliseStage } from './ui.js'
 import type { Activity, AppState, CalendarEvent, Call, Lead, Profile, Theme } from './types.js'
 
 const now = () => new Date().toISOString()
@@ -55,6 +56,7 @@ export const api = {
 
     const leads: Lead[] = (leadsRes.data || []).map((lead: any) => ({
       ...lead,
+      stage: normaliseStage(lead.stage),
       value: Number(lead.value) || 0,
       probability: Number(lead.probability) || 0,
       tags: Array.isArray(lead.tags) ? lead.tags : [],
@@ -100,9 +102,9 @@ export const api = {
       role: input.role?.trim() ?? '',
       source: input.source?.trim() ?? 'Direct',
       owner: input.owner?.trim() ?? '',
-      stage: input.stage ?? 'new',
+      stage: input.stage ?? 'qualified',
       value: Number.isFinite(input.value) ? Number(input.value) : 0,
-      probability: Number.isFinite(input.probability) ? Number(input.probability) : 10,
+      probability: Number.isFinite(input.probability) ? Number(input.probability) : 30,
       priority: input.priority ?? 'medium',
       offer: input.offer ?? '',
       nextStep: input.nextStep?.trim() ?? '',

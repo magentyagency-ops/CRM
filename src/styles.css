@@ -1071,3 +1071,20 @@ input[type="date"]:invalid::-webkit-datetime-edit { color: var(--muted) }
 }
 .seg:hover { color: var(--ink) }
 .seg.active { background: var(--field); color: var(--blue); box-shadow: 0 2px 6px rgba(24, 74, 124, .12) }
+
+/* Bloc vide transformé en cible : même dessin, mais tout le cadre réagit. */
+.empty-action {
+  display: block; width: 100%; padding: 0;
+  border: 0; background: transparent; cursor: pointer; text-align: inherit; font: inherit;
+}
+.empty-action .empty { transition: .2s var(--ease) }
+.empty-action:hover .empty {
+  border-color: color-mix(in srgb, var(--blue) 45%, transparent);
+  background: color-mix(in srgb, var(--blue) 5%, transparent);
+}
+
+/* Les flèches d'un champ nombre sont dessinées par le système : on les retire,
+   la saisie au clavier suffit. */
+input[type="number"] { -moz-appearance: textfield; appearance: textfield }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0 }

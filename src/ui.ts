@@ -21,13 +21,24 @@ export interface StageMeta {
 }
 
 export const STAGES: StageMeta[] = [
-  { id: 'new', label: 'Nouveau', color: 'var(--blue-2)', probability: 10 },
-  { id: 'qualified', label: 'Qualifié', color: 'var(--cyan)', probability: 30 },
-  { id: 'proposal', label: 'Proposition', color: 'var(--violet)', probability: 55 },
+  { id: 'qualified', label: 'Qualifié', color: 'var(--blue-2)', probability: 30 },
+  { id: 'r1', label: 'R1', color: 'var(--cyan)', probability: 45 },
+  { id: 'r2', label: 'R2', color: 'var(--violet)', probability: 60 },
   { id: 'negotiation', label: 'Négociation', color: 'var(--amber)', probability: 75 },
   { id: 'won', label: 'Gagné', color: 'var(--green)', probability: 100, closed: 'won' },
   { id: 'lost', label: 'Perdu', color: 'var(--red)', probability: 0, closed: 'lost' },
 ]
+
+/**
+ * Étapes de l'ancien découpage, telles qu'elles peuvent encore exister en base
+ * tant que la migration 006 n'a pas été jouée. Sans cette table de passage, un
+ * lead resté en « Nouveau » n'appartiendrait à aucune colonne et disparaîtrait
+ * du tableau.
+ */
+const ANCIENNES_ETAPES: Record<string, Stage> = { new: 'qualified', proposal: 'r1' }
+
+export const normaliseStage = (valeur: string): Stage =>
+  (ANCIENNES_ETAPES[valeur] ?? valeur) as Stage
 
 export const stageMeta = (stage: Stage): StageMeta => STAGES.find((item) => item.id === stage) ?? STAGES[0]
 
@@ -187,8 +198,6 @@ export const initialsOf = (primary: string, fallback = ''): string =>
     .join('')
 
 export const initials = (lead: Lead): string => initialsOf(lead.company, lead.contact)
-
-export const weightedValue = (lead: Lead): number => (lead.value * lead.probability) / 100
 
 /* ------------------------------------------------------------ dates util */
 

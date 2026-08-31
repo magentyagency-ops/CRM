@@ -19,7 +19,6 @@ import {
   relativeDays,
   stageMeta,
   toast,
-  weightedValue,
 } from './ui.js'
 
 let openLeadId: string | null = null
@@ -79,8 +78,8 @@ function renderDrawer(): void {
         <strong>${formatMoney(lead.value)}</strong>
       </div>
       <div class="price-weighted">
-        <small>Pondéré à ${lead.probability} %</small>
-        <b>${formatMoney(weightedValue(lead))}</b>
+        <small>Chances de signature</small>
+        <b>${lead.probability} %</b>
       </div>
     </div>
 
@@ -126,7 +125,11 @@ function renderDrawer(): void {
               </button>`
             })
             .join('')}</div>`
-        : emptyBlock('ri-calendar-line', 'Aucun rendez-vous', 'Planifie un créneau pour avancer sur ce lead.')
+        : `<button class="empty-action" type="button" id="planEventEmpty">${emptyBlock(
+            'ri-calendar-line',
+            'Aucun rendez-vous',
+            'Clique ici pour planifier un créneau avec ce lead.',
+          )}</button>`
     }
 
     <p class="section-title">Historique</p>
@@ -157,8 +160,10 @@ function renderDrawer(): void {
     </div>`)
 
   panel.querySelector('#editLead')?.addEventListener('click', () => openLeadForm(lead))
-  panel.querySelector('#planEvent')?.addEventListener('click', () =>
-    openEventForm(undefined, { leadId: lead.id }),
+  // Le bouton et le grand bloc vide mènent au même endroit : cliquer dans la
+  // zone « Aucun rendez-vous » est le geste naturel, il ne devait pas rester mort.
+  panel.querySelectorAll('#planEvent, #planEventEmpty').forEach((bouton) =>
+    bouton.addEventListener('click', () => openEventForm(undefined, { leadId: lead.id })),
   )
 
   panel.querySelectorAll<HTMLButtonElement>('[data-stage]').forEach((button) => {

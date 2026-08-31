@@ -42,6 +42,16 @@ comme les leads — chacun ses appels, l'administrateur voit ceux de toute l'éq
 Tant que ce script n'est pas joué, le reste de l'application continue de fonctionner :
 la section Appels s'affiche simplement vide.
 
+## 1 ter. Étapes du pipeline
+
+Exécuter [`supabase/006-etapes-pipeline.sql`](supabase/006-etapes-pipeline.sql) : il
+remplace les étapes `new` et `proposal` par `qualified` et `r1`, et autorise les
+nouvelles valeurs `r1` et `r2`.
+
+L'interface sait déjà lire les anciennes étapes — un lead resté en « Nouveau » s'affiche
+en « Qualifié » — mais **tant que ce script n'est pas joué, déplacer une carte vers R1 ou
+R2 est refusé par la base**, sa contrainte n'acceptant pas encore ces valeurs.
+
 --- | --- | --- |
 | `SUPABASE_URL` | l'URL du projet | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | la clé `service_role` | Supabase → Settings → API |

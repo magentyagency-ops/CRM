@@ -37,12 +37,14 @@ l'onglet **Réglages**. La mise en service est décrite dans
 
 - Filtre par compte (administrateur) : tous les deals, ceux d'un commercial, ou
   une sélection de plusieurs commerciaux à la fois.
-- Six colonnes : Nouveau, Qualifié, Proposition, Négociation, Gagné, Perdu.
+- Six colonnes : Qualifié, R1, R2, Négociation, Gagné, Perdu — R1 et R2 étant le premier
+  et le second rendez-vous. Un lead entre au pipeline parce qu'il est qualifié.
 - Glisser-déposer d'une carte pour faire avancer un lead ; la probabilité est alignée sur
   l'étape et le changement est ajouté à l'historique du lead.
 - Recherche instantanée sur le contact, la société, le responsable, la source et les tags.
 - Clic sur une carte : panneau latéral avec fiche complète, étapes, rendez-vous liés et
-  historique (notes, appels, emails, réunions).
+  historique (notes, appels, emails, réunions). La probabilité y est présentée comme une
+  chance de signature — elle ne rabote pas le montant affiché.
 
 ### Leads
 
@@ -87,6 +89,8 @@ rapides (planifier, modifier, supprimer).
 | `supabase/002-auth-multi-tenant.sql` | comptes, rôles, propriétaire des données et politiques RLS |
 | `supabase/004-type-offre.sql` | type d'offre proposée (logiciel / audit) |
 | `supabase/005-suivi-appels.sql` | table `calls` du suivi d'appels et sa RLS |
+| `supabase/006-etapes-pipeline.sql` | étapes Qualifié / R1 / R2 et reprise des anciennes |
+| `src/select.ts`, `src/fields.ts` | listes déroulantes maison, calendriers et champs téléphone |
 | `src/leadFromCall.ts` | pont entre le suivi d'appels et le pipeline (rendez-vous → lead qualifié) |
 | `api/admin/users.ts` | fonction serverless Vercel : création et gestion des comptes (clé `service_role`) |
 | `server/index.ts` | ancienne API Express sur fichier JSON, conservée pour référence, plus utilisée |

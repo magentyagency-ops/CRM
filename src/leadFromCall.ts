@@ -10,8 +10,8 @@ import { formatDate, stageMeta, toast } from './ui.js'
  * d'appel, pour que la règle soit la même partout.
  */
 
-/** Étapes qu'un rendez-vous fait avancer ; au-delà, le lead a déjà dépassé ce stade. */
-const A_PROMOUVOIR = ['new', 'lost'] as const
+/** Étapes qu'un rendez-vous fait rouvrir ; ailleurs, le lead est déjà en piste. */
+const A_PROMOUVOIR = ['lost'] as const
 
 /** Lead déjà relié à l'appel, ou à défaut celui de la même société du même compte. */
 function leadExistant(call: Call): Lead | undefined {

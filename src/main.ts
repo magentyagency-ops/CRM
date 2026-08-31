@@ -3,7 +3,8 @@ import { currentProfile, onAuthChange, sendPasswordReset, signIn, signOut, updat
 import { initDrawer } from './drawer.js'
 import { openCallForm, openEventForm, openLeadForm } from './forms.js'
 import { closeModal, initOverlays, openModal } from './modal.js'
-import { initDateFields, initSelects } from './select.js'
+import { initDateFields, initPhoneFields } from './fields.js'
+import { initSelects } from './select.js'
 import { hydrate, isAdmin, notify, state } from './store.js'
 import type { Theme } from './types.js'
 import { $, $$, escapeHtml, toast } from './ui.js'
@@ -270,6 +271,7 @@ async function boot(): Promise<void> {
   initOverlays()
   initSelects()
   initDateFields()
+  initPhoneFields()
   initNavigation()
   initTheme()
   initShortcuts()

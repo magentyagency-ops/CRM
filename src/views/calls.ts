@@ -164,7 +164,8 @@ function editor(field: Field, call?: Partial<Call>, id = ''): string {
         .map((key) => option(key, CALL_OBJECTIONS[key], (call?.objection ?? '') === key))
         .join('')}</select>`
     default:
-      return `<input ${base} type="text" value="${escapeHtml(String(call?.[field] ?? ''))}"
+      return `<input ${base} type="${field === 'phone' ? 'tel' : 'text'}"${field === 'phone' ? ' inputmode="tel"' : ''}
+        value="${escapeHtml(String(call?.[field] ?? ''))}"
         placeholder="${PLACEHOLDERS[field] ?? ''}" aria-label="${LABELS[field]}">`
   }
 }
