@@ -65,6 +65,12 @@ envoyé au navigateur. Elle reste uniquement côté fonction serverless.
 Sans cette variable, l'application fonctionne normalement mais l'onglet
 **Réglages** affiche « Administration indisponible ».
 
+## 1 quater. Étape Démo
+
+Exécuter [`supabase/007-etape-demo.sql`](supabase/007-etape-demo.sql) : il autorise la
+valeur `demo`. Tant que ce script n'est pas joué, déplacer une carte vers Démo est refusé
+par la base.
+
 ## 3. Créer le compte administrateur
 
 1. Dans Supabase → **Authentication → Providers → Email**, laisser les

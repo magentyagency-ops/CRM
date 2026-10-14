@@ -23,6 +23,7 @@ export interface StageMeta {
 export const STAGES: StageMeta[] = [
   { id: 'qualified', label: 'Qualifié', color: 'var(--blue-2)', probability: 30 },
   { id: 'r1', label: 'R1', color: 'var(--cyan)', probability: 45 },
+  { id: 'demo', label: 'Démo', color: 'var(--blue)', probability: 50 },
   { id: 'r2', label: 'R2', color: 'var(--violet)', probability: 60 },
   { id: 'negotiation', label: 'Négociation', color: 'var(--amber)', probability: 75 },
   { id: 'won', label: 'Gagné', color: 'var(--green)', probability: 100, closed: 'won' },

@@ -37,8 +37,8 @@ l'onglet **Réglages**. La mise en service est décrite dans
 
 - Filtre par compte (administrateur) : tous les deals, ceux d'un commercial, ou
   une sélection de plusieurs commerciaux à la fois.
-- Six colonnes : Qualifié, R1, R2, Négociation, Gagné, Perdu — R1 et R2 étant le premier
-  et le second rendez-vous. Un lead entre au pipeline parce qu'il est qualifié.
+- Sept colonnes : Qualifié, R1, Démo, R2, Négociation, Gagné, Perdu — R1 et R2 étant le
+  premier et le second rendez-vous, la démo se tenant entre les deux. Un lead entre au pipeline parce qu'il est qualifié.
 - Glisser-déposer d'une carte pour faire avancer un lead ; la probabilité est alignée sur
   l'étape et le changement est ajouté à l'historique du lead.
 - Recherche instantanée sur le contact, la société, le responsable, la source et les tags.
@@ -90,6 +90,7 @@ rapides (planifier, modifier, supprimer).
 | `supabase/004-type-offre.sql` | type d'offre proposée (logiciel / audit) |
 | `supabase/005-suivi-appels.sql` | table `calls` du suivi d'appels et sa RLS |
 | `supabase/006-etapes-pipeline.sql` | étapes Qualifié / R1 / R2 et reprise des anciennes |
+| `supabase/007-etape-demo.sql` | étape Démo entre R1 et R2 |
 | `src/select.ts`, `src/fields.ts` | listes déroulantes maison, calendriers et champs téléphone |
 | `src/leadFromCall.ts` | pont entre le suivi d'appels et le pipeline (rendez-vous → lead qualifié) |
 | `api/admin/users.ts` | fonction serverless Vercel : création et gestion des comptes (clé `service_role`) |
