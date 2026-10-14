@@ -1,4 +1,5 @@
 import { changeStage, openLeadDrawer } from '../drawer.js'
+import { openStudio } from '../proposals/studio.js'
 import {
   findLead,
   isAdmin,
@@ -129,6 +130,11 @@ function leadCard(lead: Lead): string {
       </div>
       ${lead.nextStep ? `<p class="lead-next"><i class="ri-arrow-right-up-line"></i> ${escapeHtml(lead.nextStep)}</p>` : ''}
       <p class="lead-next" style="opacity:.75">Dernière activité ${relativeDays(lead.updatedAt)}</p>
+      ${
+        lead.stage === 'r2'
+          ? `<button class="card-cta" type="button" data-studio-lead="${lead.id}" draggable="false"><i class="ri-sparkling-2-line"></i>Présentation + propal</button>`
+          : ''
+      }
     </article>`
 }
 
@@ -167,7 +173,13 @@ function bindCards(board: HTMLElement): void {
   board.querySelectorAll<HTMLElement>('.lead-card').forEach((card) => {
     const id = card.dataset.lead as string
 
-    card.addEventListener('click', () => openLeadDrawer(id))
+    card.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('[data-studio-lead]')) {
+        void openStudio(id)
+        return
+      }
+      openLeadDrawer(id)
+    })
 
     card.addEventListener('dragstart', (event) => {
       card.classList.add('dragging')

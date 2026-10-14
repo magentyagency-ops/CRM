@@ -71,6 +71,16 @@ Exécuter [`supabase/007-etape-demo.sql`](supabase/007-etape-demo.sql) : il auto
 valeur `demo`. Tant que ce script n'est pas joué, déplacer une carte vers Démo est refusé
 par la base.
 
+## 1 quinquies. Présentation + propal
+
+1. Exécuter [`supabase/008-propositions.sql`](supabase/008-propositions.sql) : il crée la
+   table `proposals` qui garde l'historique des documents générés pour chaque lead.
+2. Dans Vercel → **Settings → Environment Variables**, ajouter `OPENAI_API_KEY` (clé
+   OpenAI, sans préfixe `VITE_`), puis redéployer.
+
+Sans la clé, le bouton répond « OPENAI_API_KEY doit être définie ». Sans la table, les
+documents sont générés et ouvrables, mais pas conservés dans la fiche du lead.
+
 ## 3. Créer le compte administrateur
 
 1. Dans Supabase → **Authentication → Providers → Email**, laisser les

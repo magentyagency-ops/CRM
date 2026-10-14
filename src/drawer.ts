@@ -1,6 +1,9 @@
 import { api } from './api.js'
 import { openEventForm, openLeadForm } from './forms.js'
 import { closeDrawer, isDrawerOpen, openDrawer } from './modal.js'
+import { SALE_KINDS, type ProposalRecord } from './proposals/model.js'
+import { listProposals } from './proposals/service.js'
+import { PROPOSALS_CHANGED, bindDocActions, docActions, openStudio } from './proposals/studio.js'
 import { findLead, state, subscribe, upsertLead } from './store.js'
 import type { ActivityKind, Lead, Stage } from './types.js'
 import {
@@ -32,6 +35,38 @@ export function initDrawer(): void {
   subscribe(() => {
     if (isDrawerOpen() && openLeadId) renderDrawer()
   })
+  window.addEventListener(PROPOSALS_CHANGED, (event) => {
+    const leadId = (event as CustomEvent<string>).detail
+    proposalCache.delete(leadId)
+    if (isDrawerOpen() && openLeadId === leadId) renderDrawer()
+  })
+}
+
+/* --------------------------------------------- présentations et propals */
+
+/** Le tiroir se redessine à chaque changement de données : on ne relit pas la base à chaque fois. */
+const proposalCache = new Map<string, ProposalRecord[]>()
+
+async function fillProposals(panel: HTMLElement, leadId: string): Promise<void> {
+  const box = panel.querySelector<HTMLElement>('#proposalHistory')
+  if (!box) return
+  let records = proposalCache.get(leadId)
+  if (!records) {
+    records = await listProposals(leadId)
+    proposalCache.set(leadId, records)
+  }
+  // Le tiroir a pu changer de lead pendant la lecture.
+  if (!box.isConnected || openLeadId !== leadId) return
+  box.innerHTML = records
+    .map(
+      (record) => `
+      <article class="proposal-entry">
+        <p><b>${escapeHtml(record.content.brief.projectTitle)}</b><span>${SALE_KINDS[record.input.sale]} · ${formatDateTime(record.createdAt)}</span></p>
+        <div class="doc-list">${docActions(record, true)}</div>
+      </article>`,
+    )
+    .join('')
+  bindDocActions(box, records)
 }
 
 function renderDrawer(): void {
@@ -110,6 +145,10 @@ function renderDrawer(): void {
 
     ${lead.notes ? `<p class="section-title">Notes</p><div class="fact"><b style="font-weight:500;line-height:1.7">${escapeHtml(lead.notes).replace(/\n/g, '<br>')}</b></div>` : ''}
 
+    <p class="section-title">Présentation & propal</p>
+    <button class="btn primary studio-cta" type="button" id="openStudio"><i class="ri-sparkling-2-line"></i>Présentation + propal</button>
+    <div class="proposal-history" id="proposalHistory"></div>
+
     <p class="section-title">Rendez-vous</p>
     <button class="btn" type="button" id="planEvent" style="margin-bottom:10px"><i class="ri-calendar-line"></i>Planifier un rendez-vous</button>
     ${
@@ -160,6 +199,8 @@ function renderDrawer(): void {
     </div>`)
 
   panel.querySelector('#editLead')?.addEventListener('click', () => openLeadForm(lead))
+  panel.querySelector('#openStudio')?.addEventListener('click', () => void openStudio(lead.id))
+  void fillProposals(panel, lead.id)
   // Le bouton et le grand bloc vide mènent au même endroit : cliquer dans la
   // zone « Aucun rendez-vous » est le geste naturel, il ne devait pas rester mort.
   panel.querySelectorAll('#planEvent, #planEventEmpty').forEach((bouton) =>
