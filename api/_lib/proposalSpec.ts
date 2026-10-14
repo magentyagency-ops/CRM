@@ -25,7 +25,6 @@ const obj = (properties: Record<string, Schema>, description?: string): Schema =
   additionalProperties: false,
   ...(description ? { description } : {}),
 })
-const literal = (value: string): Schema => ({ type: 'string', enum: [value] })
 
 const titleDetail = obj({ title: str('3 à 6 mots'), detail: str('Une phrase, 22 mots maximum') })
 
@@ -109,101 +108,17 @@ const briefSchema = obj({
   missingInfo: arr(str(), 'Points que le commercial doit vérifier avant envoi (informations manquantes, hypothèses prises)'),
 })
 
-const slideSchemas = [
-  obj({
-    layout: literal('cover'),
-    kicker: str('Ex. « Proposition commerciale · Audit »'),
-    title: str('Titre de couverture percutant, 5 à 9 mots, orienté bénéfice. Un « \\n » pour forcer le retour à la ligne.'),
-    highlight: str('Fragment EXACT du titre à mettre en couleur, 1 à 3 mots'),
-    subtitle: str('Une phrase, 25 mots maximum'),
-    statement: str('Promesse en 12 mots maximum'),
-  }),
-  obj({
-    layout: literal('context'),
-    kicker: str(),
-    title: str('6 à 10 mots'),
-    text: str('2 phrases, 45 mots maximum'),
-    bullets: arr(str('14 mots maximum'), '3 à 4 points'),
-    statement: str(),
-  }),
-  obj({
-    layout: literal('quote'),
-    kicker: str(),
-    quote: str('Citation exacte du client, 25 mots maximum'),
-    speaker: str(),
-    comment: str('Ce que cette phrase révèle, 20 mots maximum'),
-    statement: str(),
-  }),
-  obj({
-    layout: literal('stats'),
-    kicker: str(),
-    title: str(),
-    figure: obj({ value: str('Très court : « 10k », « 3 h »'), label: str('4 mots maximum'), caption: str('12 mots maximum') }),
-    points: arr(str('10 mots maximum'), '3 points'),
-    statement: str(),
-  }),
-  obj({ layout: literal('pains'), kicker: str(), title: str(), items: arr(titleDetail, '3 à 4 éléments'), statement: str() }),
-  obj({
-    layout: literal('versus'),
-    kicker: str(),
-    title: str(),
-    before: obj({ label: str('« Aujourd’hui »'), value: str('Très court'), text: str('25 mots maximum') }),
-    after: obj({ label: str('« Avec … »'), value: str('Très court'), text: str('25 mots maximum') }),
-    statement: str(),
-  }),
-  obj({
-    layout: literal('flow'),
-    kicker: str(),
-    title: str(),
-    steps: arr(obj({ title: str('1 à 3 mots'), caption: str('6 mots maximum') }), '3 à 5 étapes'),
-    statement: str(),
-  }),
-  obj({
-    layout: literal('pillars'),
-    kicker: str(),
-    title: str(),
-    intro: str('Une phrase, 25 mots maximum'),
-    items: arr(titleDetail, '4 éléments exactement'),
-    statement: str(),
-  }),
-  obj({
-    layout: literal('results'),
-    kicker: str(),
-    title: str(),
-    items: arr(
-      obj({ value: str('« −30 % », « 2 h/j », « ↗ »'), title: str('2 à 4 mots'), detail: str('15 mots maximum') }),
-      '4 éléments exactement',
-    ),
-    statement: str(),
-  }),
-  obj({
-    layout: literal('roadmap'),
-    kicker: str(),
-    title: str(),
-    phases: arr(obj({ name: str('1 à 3 mots'), duration: str(), detail: str('20 mots maximum') }), '3 à 4 phases'),
-    statement: str(),
-  }),
-  obj({
-    layout: literal('offer'),
-    kicker: str(),
-    title: str(),
-    offerName: str('Nom de l’offre, 3 à 7 mots'),
-    pitch: str('25 mots maximum'),
-    priceNote: str('Ex. « Forfait · TVA non applicable » ; ne JAMAIS écrire le prix, il est ajouté automatiquement'),
-    includes: arr(str('10 mots maximum'), '4 à 6 éléments inclus'),
-    statement: str(),
-  }),
-  obj({
-    layout: literal('closing'),
-    kicker: str(),
-    title: str('5 à 8 mots'),
-    subtitle: str(),
-    nextSteps: arr(obj({ title: str('2 à 4 mots'), detail: str('12 mots maximum') }), '3 étapes'),
-    statement: str(),
-  }),
-]
-
-const deckSchema = obj({ slides: arr({ anyOf: slideSchemas }, '10 à 13 slides') })
+const deckSchema = obj({
+  concept: str('La direction artistique choisie pour ce client, en 2 phrases : intention, ambiance, fil visuel'),
+  css: str('Ajustements CSS communs aux slides, classes préfixées d- (sans balise <style>) ; peut être court'),
+  slides: arr(
+    obj({
+      title: str('Titre court de la slide, pour la navigation'),
+      html: str("Contenu HTML de la slide, sans la balise <section> qui l'entoure"),
+    }),
+    '8 à 15 slides',
+  ),
+})
 
 const proposalSchema = obj({
   title: str('Titre de la proposition, orienté bénéfice'),
@@ -342,16 +257,59 @@ ${STYLE}`,
       effort: 'medium',
       instructions: `${NIRA}
 
-Ta mission : écrire le contenu d'une présentation commerciale projetée lors du R2 avec le prospect. Un gabarit graphique haut de gamme aux couleurs du client se charge de la mise en page : tu choisis la mise en page de chaque slide et tu écris le texte.
+Tu es à la fois directeur de la stratégie commerciale et directeur artistique dans une agence de design de premier plan. Tu conçois de A à Z la présentation projetée lors du R2 avec ce prospect : le récit, la structure ET le design de chaque slide, en HTML et CSS.
 
-Construis un récit, pas un catalogue. Trame conseillée (à adapter) :
-cover → context (ce que nous avons compris) → quote (seulement s'il existe une vraie citation forte) → stats ou pains (le problème et son coût) → versus (avant / après) → pillars ou flow (la solution) → results (gains attendus) → roadmap → offer → closing (prochaines étapes).
-- 10 à 13 slides. La première est « cover », la dernière « closing », une seule « offer », juste avant « closing ».
-- Varie les mises en page : jamais deux fois la même à la suite.
-- Chaque slide parle du client : ses mots, ses chiffres, ses outils. Le « statement » est la phrase à retenir de la slide.
-- « stats » uniquement avec un vrai chiffre du client ; sinon préfère « pains ».
-- Moins de texte, plus d'impact : c'est une présentation, pas un document.
-- Si un titre annonce un nombre (« trois leviers », « quatre semaines »), il correspond exactement au nombre d'éléments de la slide.
+# 1. Le récit : une structure propre à CE rendez-vous
+Il n'existe aucun plan type. Avant d'écrire, demande-toi ce qui fera signer CE client, puis construis le récit qui y mène :
+- un dirigeant méfiant appelle des preuves, du concret, une démarche réversible ;
+- plusieurs décideurs appellent une slide par enjeu ou par interlocuteur ;
+- une démo réussie appelle son récapitulatif et le « et maintenant » ;
+- un client qui chiffre ses pertes appelle un calcul d'impact visualisé ;
+- un process complexe appelle un schéma avant / après ;
+- un client pressé appelle une présentation courte et directe.
+Le nombre de slides (8 à 15), leur ordre et leur nature découlent de cette réflexion. Évite la trame « constat → problèmes → solution → résultats → planning → offre » si elle n'est pas la meilleure ici. Une slide = une idée.
+Obligatoire : une ouverture forte avec le logo du client, une slide d'offre avec le prix, une conclusion qui déclenche la décision.
+
+# 2. La direction artistique : unique pour ce client
+Invente une direction artistique adaptée à son secteur et à sa personnalité (un industriel, une maison de luxe, un cabinet d'avocats et une start-up ne se présentent pas pareil), dans ses couleurs. Niveau attendu : agence haut de gamme, type Pentagram ou Apple keynote.
+- Beaucoup d'air : marges d'au moins 96 px, des slides presque vides où un seul chiffre ou une seule phrase occupe l'espace, une hiérarchie typographique très marquée (titres de 64 à 140 px, texte courant de 22 à 28 px, jamais moins de 18 px).
+- Variété : alterne fonds clairs, aplats pleine page dans la couleur du client, fonds sombres pour les ruptures, compositions asymétriques, grilles éditoriales, grands chiffres, citations immenses, cartes, frises.
+- Visuels : dessine en SVG inline des schémas de flux, des architectures, des comparaisons avant / après, des graphiques simples à partir des chiffres réels, des formes graphiques, des pictogrammes au trait. Aucune image externe.
+- Interdit : les slides « liste à puces », le texte serré, les dégradés criards, plus de 45 mots sur une slide (hors schéma), les emojis.
+- Un fil visuel relie les slides (un motif, une trame, un repère de chapitre, un traitement des numéros).
+
+# 3. La bibliothèque de composants
+Tu ne vois pas le rendu : ne dessine jamais toi-même des traits, flèches ou cadres positionnés en coordonnées, ils tombent de travers. Compose tes slides avec ces composants, finis au pixel près et déjà aux couleurs du client. Tu peux les combiner librement, les imbriquer, ajuster espacements et tailles via ton CSS (style="..." ou classes d-), et ajouter des SVG simples (pictogrammes au trait, graphiques).
+
+Chaque slide commence par <div class="k-slide FOND [k-center|k-end|k-between]"> qui remplit la toile (marges 96 × 112 px, colonne flex avec gap 40 px).
+- FOND : k-bg-light (blanc), k-bg-tint (teinté), k-bg-soft, k-bg-brand (aplat couleur client, texte blanc), k-bg-dark (sombre profond). Sur k-bg-brand et k-bg-dark, les textes et composants passent en blanc d'eux-mêmes.
+- Mise en page : k-grid-2, k-grid-3, k-split (5/7), k-split is-reverse, k-row (is-between), k-stack, k-fill (prend la hauteur restante).
+- Texte : k-eyebrow (surtitre avec filet), k-chapter (<b>02</b> Le constat), k-h-xl (144 px), k-h-l (100), k-h-m (68), k-h-s (40), k-lede (30), k-body (23), k-mono, k-accent, k-mark (surlignage), k-grad-text, k-tag (pastille).
+- Logo : <div class="k-logo [is-small|is-large]"><img class="client-logo" src="{{LOGO}}" alt=""></div> (pastille blanche, lisible sur tout fond). Co-marquage : <div class="k-cobrand"><div class="k-logo">…</div><span class="k-x">×</span><span class="k-nira">NIRA</span></div>
+- Grand chiffre : <div class="k-stat [is-xl|is-m]"><b>6 j</b><span>délai d'un devis</span><small>contexte</small></div> ; plusieurs : <div class="k-stats">…</div>
+- Citation : <figure class="k-quote [is-m]"><blockquote>…</blockquote><cite>Nom, fonction</cite></figure>
+- Cartes : <div class="k-cards" style="--cols:3"><article class="k-card [is-brand|is-dark|is-soft|is-outline|is-ghost]"><span class="k-num">01</span><h3>…</h3><p>…</p></article></div> ; pictogramme : <div class="k-icon"><svg viewBox="0 0 24 24">…</svg></div>
+- Flux : <div class="k-flow [is-vertical]"><div class="k-step [is-highlight|is-pain]"><span class="k-num">01</span><h3>…</h3><p>…</p></div>…</div> (flèches automatiques, 3 à 5 étapes)
+- Frise : <div class="k-timeline" style="--n:4"><div class="k-phase [is-active]"><span class="k-when">Semaine 1</span><h3>…</h3><p>…</p></div>…</div>
+- Étoile (un centre relié à 3 à 6 éléments) : <div class="k-hub"><div class="k-hub-core">Votre devis</div><div class="k-hub-item [is-highlight]" style="--i:0;--n:4"><b>Batappli</b><span>…</span></div>…</div> (--i de 0 à n-1)
+- Barres : <div class="k-bars"><div class="k-bar [is-muted]" style="--v:62"><span>Libellé</span><i></i><b>62 %</b></div>…</div>
+- Avant / après : <div class="k-versus"><div class="is-before"><span class="k-mono">Aujourd'hui</span><h3>…</h3><p>…</p></div><span class="k-vs">VS</span><div class="is-after">…</div></div>
+- Matrice : <div class="k-matrix"><span class="k-q is-tr">Prioritaire</span>…<span class="k-axis-x">Effort</span><span class="k-axis-y">Impact</span><span class="k-dot [is-muted]" style="--x:25;--y:80">Pré-devis vocal</span></div>
+- Listes : <ul class="k-checks [is-cols]"><li>…</li></ul> ; <ol class="k-numbers"><li><div><b>Titre</b><span>détail</span></div></li></ol>
+- Prix : <div class="k-price"><b>{{PRICE}}</b><span>TTC · forfait</span></div> (prévois-lui au moins 560 px de large)
+- Encadré : <div class="k-panel [is-brand]">…</div> ; filet : <hr class="k-divider">
+- Décor (derrière le contenu) : <div class="k-deco k-circle k-w-m k-tr"></div>, aussi k-ring, k-dots, k-lines ; tailles k-w-s/m/l ; positions k-tr, k-br, k-tl, k-bl (ou style="right:…;top:…").
+
+# 4. Contraintes techniques (impératives)
+- Chaque slide est une toile fixe de 1600 × 900 px, à remplir avec un k-slide. Le contenu doit tenir sans débordement : compte la place (titre + composant + une ligne, pas plus).
+- Variables CSS disponibles, à utiliser pour toutes les couleurs et polices : --primary (couleur de marque brute), --accent (version lisible sur fond blanc), --accent-2 (couleur secondaire lisible), --grad-a et --grad-b (aplats et dégradés sur lesquels le texte blanc est lisible), --ink (texte), --muted (texte secondaire), --line (filets), --bg et --bg-2 (fonds clairs teintés), --soft et --soft-2 (fonds de cartes), --shadow ; polices --f-head (titres), --f-body (texte), --f-mono (étiquettes) ; --hw (graisse des titres).
+- Dans ton CSS, n'utilise jamais --ink ou --muted comme couleur de FOND : sur fond sombre elles deviennent blanches. Pour un fond sombre sur mesure, utilise --ink-0 (la couleur de texte d'origine, toujours foncée).
+- Si la couleur de marque est très claire, n'écris jamais de texte avec --primary sur fond clair : réserve-la aux aplats et aux formes, avec du texte --ink dessus.
+- Le logo du client : src="{{LOGO}}", de préférence dans un k-logo. Le prix total s'écrit exactement {{PRICE}}. Le nom du commercial {{SELLER}}, la date {{DATE}}.
+- Préfixe toutes tes classes CSS par « d- » pour éviter les conflits. Pas de <script>, pas d'attribut on…, pas d'url() ni de ressource externe, pas d'animation infinie. Les numéros de page et la navigation sont ajoutés automatiquement.
+
+# 5. Le contenu
+Chaque slide parle du client : ses mots, ses chiffres, ses outils, ses équipes, ses citations exactes. Une slide qui pourrait servir chez un autre client est ratée.
 
 ${STYLE}`,
       input: `${dossier(input, true, website)}\n\n${brief ? briefJson(brief) : ''}`,

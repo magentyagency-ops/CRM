@@ -1,6 +1,7 @@
-import type { Brand, GeneratedContent, Slide, StudioInput } from '../model.js'
+import { type Brand, type FreeDeck, type GeneratedContent, type Slide, type StudioInput, isFreeDeck } from '../model.js'
 import { esc, fontsOf, lines, longDate, money, niraMark, paletteCss, paletteOf } from '../theme.js'
 import { pricingOf } from './common.js'
+import { KIT_CSS } from './kit.js'
 
 /**
  * Présentation commerciale : un fichier HTML autonome, au format 16:9.
@@ -514,10 +515,11 @@ ready.then(() => {
 addEventListener('beforeprint', fitAll)`
 
 export function renderDeck(content: GeneratedContent, brand: Brand, input: StudioInput): string {
+  if (isFreeDeck(content.deck)) return renderFreeDeck(content.deck, content, brand, input)
   const palette = paletteOf(brand)
   const fonts = fontsOf(content.brief.typography)
   const { total } = pricingOf(content.brief, input)
-  const slides = content.deck.slides
+  const slides = (content.deck as { slides: Slide[] }).slides
   const html = slides
     .map((slide, index) => slideHtml(slide, { brand, input, content, total, index, count: slides.length }))
     .join('')
@@ -548,6 +550,129 @@ ${CSS}
   <button id="pdf" title="Exporter en PDF">PDF</button>
 </nav>
 <script>${SCRIPT}</script>
+</body>
+</html>`
+}
+
+/* ------------------------------------------------- présentation libre */
+
+/**
+ * Le HTML vient du modèle, lui-même nourri par des transcriptions : il est
+ * traité comme non fiable. Scripts, gestionnaires d'événements et ressources
+ * externes sont retirés, et une politique de sécurité n'autorise que le script
+ * de navigation de la page.
+ */
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<\s*(script|iframe|object|embed|link|meta|base|form|style)[\s\S]*?(<\/\s*\1\s*>|\/?>)/gi, '')
+    .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/(href|src|xlink:href)\s*=\s*("|')\s*(javascript|https?|\/\/)[^"']*\2/gi, '')
+    .replace(/url\s*\(/gi, 'none(')
+}
+
+function sanitizeCss(css: string): string {
+  return css
+    .replace(/<\/?style[^>]*>/gi, '')
+    .replace(/@import[^;]*;?/gi, '')
+    .replace(/url\s*\(/gi, 'none(')
+    .replace(/expression\s*\(/gi, 'none(')
+}
+
+const FREE_CSS = `
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0b0e13;font-family:var(--f-body);color:var(--ink);-webkit-font-smoothing:antialiased}
+body{overflow:hidden}
+.viewport{position:fixed;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--grad-a) 22%,#111) 0,#0b0e13 70%)}
+.stage{position:absolute;left:50%;top:50%;width:${W}px;height:${H}px;transform-origin:center;box-shadow:0 30px 120px rgba(0,0,0,.45)}
+.slide{position:absolute;inset:0;width:${W}px;height:${H}px;display:none;overflow:hidden;background:var(--bg);font-family:var(--f-body);color:var(--ink)}
+.slide.active{display:block;animation:in .55s cubic-bezier(.22,1,.36,1) both}
+@keyframes in{from{opacity:0}to{opacity:1}}
+.slide>.inner{position:absolute;left:0;top:0;width:${W}px;height:${H}px;transform-origin:top center}
+.slide h1,.slide h2,.slide h3,.slide h4{font-family:var(--f-head);font-weight:var(--hw);margin:0}
+.slide p{margin:0}
+.slide svg{max-width:100%}
+.slide .client-logo{width:auto;object-fit:contain}
+.pageno{position:absolute;right:28px;bottom:22px;font:500 13px var(--f-mono);color:var(--muted);opacity:.7;z-index:50;mix-blend-mode:multiply}
+.controls{position:fixed;right:22px;bottom:22px;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:999px;background:rgba(15,20,28,.72);backdrop-filter:blur(10px);color:#fff;font:500 13px 'DM Mono',monospace;z-index:10;transition:opacity .4s}
+.controls.idle{opacity:0}
+.controls button{border:0;background:rgba(255,255,255,.1);color:#fff;height:36px;min-width:36px;padding:0 12px;border-radius:999px;cursor:pointer;font:inherit}
+.controls button:hover{background:rgba(255,255,255,.22)}
+.controls .pos{padding:0 8px;min-width:64px;text-align:center}
+.bar{position:fixed;left:0;top:0;height:3px;background:var(--primary);transition:width .35s;z-index:10}
+@media print{
+  @page{size:${W}px ${H}px;margin:0}
+  html,body{height:auto;overflow:visible;background:#fff}
+  .viewport{position:static;background:none}
+  .stage{position:static;transform:none!important;box-shadow:none;height:auto}
+  .slide{display:block!important;position:relative;break-after:page;animation:none}
+  .controls,.bar{display:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}`
+
+const FREE_SCRIPT = SCRIPT.replace(
+  /function fitSlide[\s\S]*?\n}\n\nfunction fitAll/,
+  `function fitSlide(slide) {
+  const inner = slide.querySelector('.inner')
+  inner.style.transform = ''
+  inner.style.height = '${H}px'
+  const height = Math.max(inner.scrollHeight, ${H})
+  if (height > ${H} + 2) {
+    inner.style.height = height + 'px'
+    inner.style.transform = 'scale(' + (${H} / height) + ')'
+  }
+}
+
+function fitAll`,
+)
+
+export function renderFreeDeck(deck: FreeDeck, content: GeneratedContent, brand: Brand, input: StudioInput): string {
+  const palette = paletteOf(brand)
+  const fonts = fontsOf(content.brief.typography)
+  const { total } = pricingOf(content.brief, input)
+  const logo = brand.logo || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221%22 height=%221%22/%3E'
+  const fill = (html: string) =>
+    sanitizeHtml(html)
+      .replace(/\{\{PRICE\}\}/g, money(total))
+      .replace(/\{\{SELLER\}\}/g, esc(input.seller.name || 'Nira'))
+      .replace(/\{\{DATE\}\}/g, esc(longDate()))
+      // Le logo est inséré après nettoyage : c'est une data URL que l'on maîtrise.
+      .replace(/\{\{LOGO\}\}/g, logo)
+  const count = deck.slides.length
+  const slides = deck.slides
+    .map(
+      (slide, index) =>
+        `<section class="slide" aria-label="${esc(slide.title)}"><div class="inner">${fill(slide.html)}</div><span class="pageno">${pad(index + 1)} / ${pad(count)}</span></section>`,
+    )
+    .join('')
+  const nonce = Math.random().toString(36).slice(2)
+
+  return `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:">
+<title>${esc(input.company)} — ${esc(content.brief.projectTitle)}</title>
+<link rel="stylesheet" href="${fonts.href}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@800&family=DM+Mono:wght@500&display=swap">
+<style>
+:root{${paletteCss(palette)};--f-head:${fonts.head};--f-body:${fonts.body};--f-mono:${fonts.mono};--hw:${fonts.headWeight};--tr:${fonts.tracking}}
+${FREE_CSS}
+${KIT_CSS}
+</style>
+<style>${sanitizeCss(deck.css)}</style>
+</head>
+<body class="${palette.lightBrand ? 'light-brand' : ''}">
+<div class="bar"></div>
+<main class="viewport"><div class="stage">${slides}</div></main>
+<nav class="controls idle">
+  <button id="prev" aria-label="Slide précédente">←</button>
+  <span class="pos"></span>
+  <button id="next" aria-label="Slide suivante">→</button>
+  <button id="full" title="Plein écran (F)">⛶</button>
+  <button id="pdf" title="Exporter en PDF">PDF</button>
+</nav>
+<script nonce="${nonce}">${FREE_SCRIPT}</script>
 </body>
 </html>`
 }

@@ -117,9 +117,21 @@ export type Slide =
   | (SlideBase & { layout: 'offer'; title: string; offerName: string; pitch: string; priceNote: string; includes: string[] })
   | (SlideBase & { layout: 'closing'; title: string; subtitle: string; nextSteps: { title: string; detail: string }[] })
 
-export interface Deck {
+/** Ancien format : slides à gabarits fixes, conservé pour rouvrir les dossiers existants. */
+export interface LegacyDeck {
   slides: Slide[]
 }
+
+/** Présentation conçue librement par le modèle : récit, mise en page et visuels. */
+export interface FreeDeck {
+  concept: string
+  css: string
+  slides: { title: string; html: string }[]
+}
+
+export type Deck = LegacyDeck | FreeDeck
+
+export const isFreeDeck = (deck: Deck): deck is FreeDeck => 'css' in deck
 
 /* --------------------------------------------------- proposition écrite */
 
