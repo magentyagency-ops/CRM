@@ -16,31 +16,51 @@ import { renderProposal, renderTechDoc } from './render/documents.js'
 
 /* ------------------------------------------------------------ génération */
 
-async function generateStep<T>(step: GenerateStep, input: StudioInput, brief?: Brief): Promise<T> {
+async function call(method: 'GET' | 'POST', query: string, body?: unknown): Promise<any> {
   let lastError: Error | null = null
-  // Une génération longue peut échouer sur un aléa réseau : un seul nouvel essai.
-  for (let attempt = 0; attempt < 2; attempt++) {
+  // Un aléa réseau ne doit pas faire perdre une génération en cours : trois essais.
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const response = await fetch('/api/proposals/generate', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${await accessToken()}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step, input, brief }),
+      const response = await fetch(`/api/proposals/generate${query}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${await accessToken()}`,
+          ...(body ? { 'Content-Type': 'application/json' } : {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
       })
       const payload = await response.json().catch(() => null)
-      if (response.ok && payload?.result) return payload.result as T
+      if (response.ok && payload) return payload
       lastError = new Error(payload?.error ?? `Génération refusée (${response.status}).`)
       if (response.status < 500) break
     } catch (error) {
       lastError = error as Error
     }
+    await new Promise((resolve) => setTimeout(resolve, 2000 * (attempt + 1)))
   }
   throw lastError ?? new Error('Génération impossible.')
+}
+
+/**
+ * Une étape tourne en tâche de fond chez OpenAI : on la lance, puis on vient
+ * chercher le résultat. Une présentation sur mesure peut prendre plusieurs minutes.
+ */
+async function generateStep<T>(step: GenerateStep, input: StudioInput, brief?: Brief, brand?: Brand): Promise<T> {
+  const { id } = await call('POST', '', { step, input, brief, brand })
+  const deadline = Date.now() + 15 * 60_000
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 4000))
+    const state = await call('GET', `?id=${encodeURIComponent(id)}`)
+    if (state.done) return state.result as T
+  }
+  throw new Error('La génération a pris trop de temps : relance-la.')
 }
 
 export type StepState = 'pending' | 'running' | 'done' | 'error'
 
 export async function generateContent(
   input: StudioInput,
+  brand: Brand,
   onStep: (step: GenerateStep, state: StepState) => void,
 ): Promise<GeneratedContent> {
   onStep('brief', 'running')
@@ -65,7 +85,7 @@ export async function generateContent(
   }
 
   const [deck, proposal, techdoc] = await Promise.all([
-    track('deck', generateStep<Deck>('deck', input, brief)),
+    track('deck', generateStep<Deck>('deck', input, brief, brand)),
     track('proposal', generateStep<ProposalDoc>('proposal', input, brief)),
     input.includeTechDoc ? track('techdoc', generateStep<TechDoc>('techdoc', input, brief)) : Promise.resolve(null),
   ])

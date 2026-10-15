@@ -1,4 +1,12 @@
 import type { Brief, GenerateStep, StudioInput } from '../../src/proposals/model.js'
+import type { WebsiteInfo } from './openai.js'
+
+/** Charte transmise par le navigateur pour la présentation : couleurs et logo. */
+export interface BrandInput {
+  primary: string
+  secondary: string
+  logo: string
+}
 
 /**
  * Schémas de sortie et consignes du modèle pour chaque étape de génération.
@@ -109,14 +117,15 @@ const briefSchema = obj({
 })
 
 const deckSchema = obj({
-  concept: str('La direction artistique choisie pour ce client, en 2 phrases : intention, ambiance, fil visuel'),
-  css: str('Ajustements CSS communs aux slides, classes préfixées d- (sans balise <style>) ; peut être court'),
+  concept: str('La direction artistique retenue, en 3 phrases : ce que tu as observé de l’identité du client, et comment la présentation la prolonge'),
+  fonts: arr(str('Nom exact d’une famille Google Fonts, ex. « Inter », « Playfair Display »'), '1 ou 2 polices : celles du client si elles existent sur Google Fonts, sinon les plus proches'),
+  css: str('Feuille de style complète de la présentation (sans balise <style>), classes préfixées d-'),
   slides: arr(
     obj({
       title: str('Titre court de la slide, pour la navigation'),
       html: str("Contenu HTML de la slide, sans la balise <section> qui l'entoure"),
     }),
-    '8 à 15 slides',
+    '7 à 14 slides',
   ),
 })
 
@@ -228,10 +237,19 @@ const briefJson = (brief: Brief): string => `# Analyse validée (source de véri
 export interface StepPrompt {
   instructions: string
   input: string
+  /** Image jointe à la demande (le logo du client), en data URL. */
+  image?: string
   effort: 'low' | 'medium' | 'high'
 }
 
-export function buildPrompt(step: GenerateStep, input: StudioInput, brief: Brief | null, website: string): StepPrompt {
+export function buildPrompt(
+  step: GenerateStep,
+  input: StudioInput,
+  brief: Brief | null,
+  site: WebsiteInfo,
+  brand: BrandInput | null = null,
+): StepPrompt {
+  const website = site.text
   if (step === 'brief') {
     return {
       effort: 'medium',
@@ -253,63 +271,44 @@ ${STYLE}`,
   }
 
   if (step === 'deck') {
+    const identity = [
+      brand?.logo ? "Le logo du client est joint en image : observe sa forme, sa typographie, son niveau de sophistication, son ambiance." : "Aucun logo fourni.",
+      brand ? `Couleurs relevées sur le logo : principale ${brand.primary}${brand.secondary ? `, secondaire ${brand.secondary}` : ''}.` : '',
+      site.identity ? `Relevé du site web du client :\n${site.identity}` : "Site web non fourni ou illisible : déduis l'identité du logo, du secteur et du discours du client.",
+    ]
+      .filter(Boolean)
+      .join('\n')
     return {
-      effort: 'medium',
+      effort: 'high',
+      image: brand?.logo || undefined,
       instructions: `${NIRA}
 
-Tu es à la fois directeur de la stratégie commerciale et directeur artistique dans une agence de design de premier plan. Tu conçois de A à Z la présentation projetée lors du R2 avec ce prospect : le récit, la structure ET le design de chaque slide, en HTML et CSS.
+Tu es directeur artistique et stratège dans une agence de design de premier plan. Tu crées ENTIÈREMENT SUR MESURE la présentation commerciale que Nira projettera au R2 devant ce prospect : le récit, la direction artistique, la mise en page et le code HTML/CSS de chaque slide. Il n'existe ni gabarit, ni bibliothèque, ni exemple à suivre : une page blanche, pour ce client et lui seul.
 
-# 1. Le récit : une structure propre à CE rendez-vous
-Il n'existe aucun plan type. Avant d'écrire, demande-toi ce qui fera signer CE client, puis construis le récit qui y mène :
-- un dirigeant méfiant appelle des preuves, du concret, une démarche réversible ;
-- plusieurs décideurs appellent une slide par enjeu ou par interlocuteur ;
-- une démo réussie appelle son récapitulatif et le « et maintenant » ;
-- un client qui chiffre ses pertes appelle un calcul d'impact visualisé ;
-- un process complexe appelle un schéma avant / après ;
-- un client pressé appelle une présentation courte et directe.
-Le nombre de slides (8 à 15), leur ordre et leur nature découlent de cette réflexion. Évite la trame « constat → problèmes → solution → résultats → planning → offre » si elle n'est pas la meilleure ici. Une slide = une idée.
-Obligatoire : une ouverture forte avec le logo du client, une slide d'offre avec le prix, une conclusion qui déclenche la décision.
+# 1. Le fond : ses besoins réels
+Relis tout le dossier et l'analyse. Identifie ce que ce prospect veut vraiment obtenir, ce qui le freine, ce qui le fera signer, et qui décide. La présentation est la réponse à CES enjeux, dans SES mots : ses chiffres, ses outils, ses équipes, ses citations exactes, la démo qu'il a vue. Choisis la structure (7 à 14 slides) qui sert le mieux ce récit précis : il n'y a pas de trame imposée. Une slide = une idée forte. Obligatoire : l'ouverture avec son logo, la proposition et son prix ({{PRICE}}), la prochaine étape.
 
-# 2. La direction artistique : unique pour ce client
-Invente une direction artistique adaptée à son secteur et à sa personnalité (un industriel, une maison de luxe, un cabinet d'avocats et une start-up ne se présentent pas pareil), dans ses couleurs. Niveau attendu : agence haut de gamme, type Pentagram ou Apple keynote.
-- Beaucoup d'air : marges d'au moins 96 px, des slides presque vides où un seul chiffre ou une seule phrase occupe l'espace, une hiérarchie typographique très marquée (titres de 64 à 140 px, texte courant de 22 à 28 px, jamais moins de 18 px).
-- Variété : alterne fonds clairs, aplats pleine page dans la couleur du client, fonds sombres pour les ruptures, compositions asymétriques, grilles éditoriales, grands chiffres, citations immenses, cartes, frises.
-- Visuels : dessine en SVG inline des schémas de flux, des architectures, des comparaisons avant / après, des graphiques simples à partir des chiffres réels, des formes graphiques, des pictogrammes au trait. Aucune image externe.
-- Interdit : les slides « liste à puces », le texte serré, les dégradés criards, plus de 45 mots sur une slide (hors schéma), les emojis.
-- Un fil visuel relie les slides (un motif, une trame, un repère de chapitre, un traitement des numéros).
+# 2. La forme : la direction artistique DU CLIENT
+La présentation doit sembler sortir de chez le client : on doit y reconnaître sa marque au premier coup d'œil.
+${identity}
+- Reprends SES couleurs exactes (codes hexadécimaux du site et du logo) comme palette principale, dans les proportions de sa marque : une marque sobre reste sobre, une marque vive reste vive. Définis tes propres variables CSS dans :root.
+- Reprends SES polices (champ « fonts ») si elles sont sur Google Fonts, sinon les plus proches en caractère.
+- Prolonge son univers : angles vifs ou formes douces comme sur son site, densité, usage des capitales, motifs graphiques inspirés de son logo ou de son métier (dessinés en CSS ou en SVG).
+- Le logo s'affiche avec <img class="client-logo" src="{{LOGO}}" alt="${input.company}"> ; fixe sa hauteur dans ton CSS. Place-le sur un fond où il est parfaitement lisible.
 
-# 3. La bibliothèque de composants
-Tu ne vois pas le rendu : ne dessine jamais toi-même des traits, flèches ou cadres positionnés en coordonnées, ils tombent de travers. Compose tes slides avec ces composants, finis au pixel près et déjà aux couleurs du client. Tu peux les combiner librement, les imbriquer, ajuster espacements et tailles via ton CSS (style="..." ou classes d-), et ajouter des SVG simples (pictogrammes au trait, graphiques).
-
-Chaque slide commence par <div class="k-slide FOND [k-center|k-end|k-between]"> qui remplit la toile (marges 96 × 112 px, colonne flex avec gap 40 px).
-- FOND : k-bg-light (blanc), k-bg-tint (teinté), k-bg-soft, k-bg-brand (aplat couleur client, texte blanc), k-bg-dark (sombre profond). Sur k-bg-brand et k-bg-dark, les textes et composants passent en blanc d'eux-mêmes.
-- Mise en page : k-grid-2, k-grid-3, k-split (5/7), k-split is-reverse, k-row (is-between), k-stack, k-fill (prend la hauteur restante).
-- Texte : k-eyebrow (surtitre avec filet), k-chapter (<b>02</b> Le constat), k-h-xl (144 px), k-h-l (100), k-h-m (68), k-h-s (40), k-lede (30), k-body (23), k-mono, k-accent, k-mark (surlignage), k-grad-text, k-tag (pastille).
-- Logo : <div class="k-logo [is-small|is-large]"><img class="client-logo" src="{{LOGO}}" alt=""></div> (pastille blanche, lisible sur tout fond). Co-marquage : <div class="k-cobrand"><div class="k-logo">…</div><span class="k-x">×</span><span class="k-nira">NIRA</span></div>
-- Grand chiffre : <div class="k-stat [is-xl|is-m]"><b>6 j</b><span>délai d'un devis</span><small>contexte</small></div> ; plusieurs : <div class="k-stats">…</div>
-- Citation : <figure class="k-quote [is-m]"><blockquote>…</blockquote><cite>Nom, fonction</cite></figure>
-- Cartes : <div class="k-cards" style="--cols:3"><article class="k-card [is-brand|is-dark|is-soft|is-outline|is-ghost]"><span class="k-num">01</span><h3>…</h3><p>…</p></article></div> ; pictogramme : <div class="k-icon"><svg viewBox="0 0 24 24">…</svg></div>
-- Flux : <div class="k-flow [is-vertical]"><div class="k-step [is-highlight|is-pain]"><span class="k-num">01</span><h3>…</h3><p>…</p></div>…</div> (flèches automatiques, 3 à 5 étapes)
-- Frise : <div class="k-timeline" style="--n:4"><div class="k-phase [is-active]"><span class="k-when">Semaine 1</span><h3>…</h3><p>…</p></div>…</div>
-- Étoile (un centre relié à 3 à 6 éléments) : <div class="k-hub"><div class="k-hub-core">Votre devis</div><div class="k-hub-item [is-highlight]" style="--i:0;--n:4"><b>Batappli</b><span>…</span></div>…</div> (--i de 0 à n-1)
-- Barres : <div class="k-bars"><div class="k-bar [is-muted]" style="--v:62"><span>Libellé</span><i></i><b>62 %</b></div>…</div>
-- Avant / après : <div class="k-versus"><div class="is-before"><span class="k-mono">Aujourd'hui</span><h3>…</h3><p>…</p></div><span class="k-vs">VS</span><div class="is-after">…</div></div>
-- Matrice : <div class="k-matrix"><span class="k-q is-tr">Prioritaire</span>…<span class="k-axis-x">Effort</span><span class="k-axis-y">Impact</span><span class="k-dot [is-muted]" style="--x:25;--y:80">Pré-devis vocal</span></div>
-- Listes : <ul class="k-checks [is-cols]"><li>…</li></ul> ; <ol class="k-numbers"><li><div><b>Titre</b><span>détail</span></div></li></ol>
-- Prix : <div class="k-price"><b>{{PRICE}}</b><span>TTC · forfait</span></div> (prévois-lui au moins 560 px de large)
-- Encadré : <div class="k-panel [is-brand]">…</div> ; filet : <hr class="k-divider">
-- Décor (derrière le contenu) : <div class="k-deco k-circle k-w-m k-tr"></div>, aussi k-ring, k-dots, k-lines ; tailles k-w-s/m/l ; positions k-tr, k-br, k-tl, k-bl (ou style="right:…;top:…").
+# 3. L'exigence : créatif, professionnel, aéré
+- Niveau attendu : une agence de design haut de gamme. Chaque slide est une composition pensée, pas un document.
+- De l'air : marges généreuses (au moins 100 px), beaucoup de vide, une seule idée par slide, 35 mots maximum hors schéma. Taille du texte : jamais moins de 20 px ; titres de 56 à 150 px.
+- Une vraie hiérarchie, de la variété d'une slide à l'autre (compositions asymétriques, pleine page de couleur, très grand chiffre, citation seule, schéma, comparaison), et un fil visuel commun qui fait système.
+- Visualise les idées : schémas de processus, comparaisons avant / après, graphiques à partir des vrais chiffres, cartographie des outils, en HTML/CSS ou en SVG.
+- Proscrits : listes à puces en série, cartes toutes identiques, textes serrés, dégradés criards, emojis, clichés de « présentation d'agence IA » (robots, cerveaux, circuits) sauf si c'est l'univers du client.
 
 # 4. Contraintes techniques (impératives)
-- Chaque slide est une toile fixe de 1600 × 900 px, à remplir avec un k-slide. Le contenu doit tenir sans débordement : compte la place (titre + composant + une ligne, pas plus).
-- Variables CSS disponibles, à utiliser pour toutes les couleurs et polices : --primary (couleur de marque brute), --accent (version lisible sur fond blanc), --accent-2 (couleur secondaire lisible), --grad-a et --grad-b (aplats et dégradés sur lesquels le texte blanc est lisible), --ink (texte), --muted (texte secondaire), --line (filets), --bg et --bg-2 (fonds clairs teintés), --soft et --soft-2 (fonds de cartes), --shadow ; polices --f-head (titres), --f-body (texte), --f-mono (étiquettes) ; --hw (graisse des titres).
-- Dans ton CSS, n'utilise jamais --ink ou --muted comme couleur de FOND : sur fond sombre elles deviennent blanches. Pour un fond sombre sur mesure, utilise --ink-0 (la couleur de texte d'origine, toujours foncée).
-- Si la couleur de marque est très claire, n'écris jamais de texte avec --primary sur fond clair : réserve-la aux aplats et aux formes, avec du texte --ink dessus.
-- Le logo du client : src="{{LOGO}}", de préférence dans un k-logo. Le prix total s'écrit exactement {{PRICE}}. Le nom du commercial {{SELLER}}, la date {{DATE}}.
-- Préfixe toutes tes classes CSS par « d- » pour éviter les conflits. Pas de <script>, pas d'attribut on…, pas d'url() ni de ressource externe, pas d'animation infinie. Les numéros de page et la navigation sont ajoutés automatiquement.
-
-# 5. Le contenu
-Chaque slide parle du client : ses mots, ses chiffres, ses outils, ses équipes, ses citations exactes. Une slide qui pourrait servir chez un autre client est ratée.
+- Chaque slide est une toile fixe de 1600 × 900 px (élément <section class="slide"> en position:relative, overflow:hidden, fourni). Ton HTML la remplit, typiquement avec un conteneur en position:absolute; inset:0.
+- Tu ne vois pas le rendu : construis les mises en page avec CSS Grid et Flexbox, jamais avec des éléments positionnés au pixel près qui doivent s'aligner entre eux. Ne dessine pas de traits de liaison entre des blocs HTML : pour un schéma relié, fais-le entièrement dans un seul SVG avec son viewBox, ou utilise des flèches posées entre les blocs dans la grille. Les éléments en position absolue ne servent qu'au décor.
+- Compte la place : le contenu doit tenir dans 900 px de haut sans débordement. Et à l'inverse, occupe toute la toile : équilibre la composition sur toute la hauteur (centrage vertical, éléments ancrés en bas, grand visuel), jamais un bloc tassé en haut avec un grand vide dessous.
+- Toutes tes classes sont préfixées « d- ». Pas de <script>, pas d'attribut on…, pas d'url() ni d'image externe, pas d'@import (les polices sont chargées à partir du champ « fonts »). La navigation et la numérotation sont ajoutées automatiquement en bas à droite (laisse 60 px libres dans ce coin).
+- Placeholders : {{LOGO}}, {{PRICE}}, {{SELLER}} (le commercial), {{DATE}}.
 
 ${STYLE}`,
       input: `${dossier(input, true, website)}\n\n${brief ? briefJson(brief) : ''}`,

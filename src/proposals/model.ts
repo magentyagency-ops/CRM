@@ -125,6 +125,8 @@ export interface LegacyDeck {
 /** Présentation conçue librement par le modèle : récit, mise en page et visuels. */
 export interface FreeDeck {
   concept: string
+  /** Familles Google Fonts choisies d'après l'identité du client (absent sur les premières versions). */
+  fonts?: string[]
   css: string
   slides: { title: string; html: string }[]
 }

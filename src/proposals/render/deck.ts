@@ -645,6 +645,20 @@ export function renderFreeDeck(deck: FreeDeck, content: GeneratedContent, brand:
     )
     .join('')
   const nonce = Math.random().toString(36).slice(2)
+  // Une présentation sur mesure apporte ses polices et sa charte ; les premières
+  // versions s'appuyaient encore sur la bibliothèque de composants.
+  const bespoke = Array.isArray(deck.fonts)
+  const fontLinks = (deck.fonts ?? [])
+    .filter((name) => /^[A-Za-z0-9 ]{2,40}$/.test(name))
+    .slice(0, 3)
+    .flatMap((name) => {
+      const family = name.trim().replace(/ /g, '+')
+      return [
+        `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${family}&display=swap">`,
+        `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${family}:wght@300;400;500;600;700;800&display=swap">`,
+      ]
+    })
+    .join('\n')
 
   return `<!doctype html>
 <html lang="fr">
@@ -655,10 +669,11 @@ export function renderFreeDeck(deck: FreeDeck, content: GeneratedContent, brand:
 <title>${esc(input.company)} — ${esc(content.brief.projectTitle)}</title>
 <link rel="stylesheet" href="${fonts.href}">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@800&family=DM+Mono:wght@500&display=swap">
+${fontLinks}
 <style>
 :root{${paletteCss(palette)};--f-head:${fonts.head};--f-body:${fonts.body};--f-mono:${fonts.mono};--hw:${fonts.headWeight};--tr:${fonts.tracking}}
 ${FREE_CSS}
-${KIT_CSS}
+${bespoke ? '' : KIT_CSS}
 </style>
 <style>${sanitizeCss(deck.css)}</style>
 </head>

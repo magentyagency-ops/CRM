@@ -135,8 +135,8 @@ function renderForm(lead: Lead, draft: Draft): void {
                 <label class="color-pick"><input type="color" id="colorPrimary" value="${draft.brand.primary}"><span><b>Couleur principale</b><small>${draft.brand.primary}</small></span></label>
                 <label class="color-pick"><input type="color" id="colorSecondary" value="${draft.brand.secondary || '#203040'}"><span><b>Secondaire</b><small>${draft.brand.secondary || 'auto'}</small></span></label>
               </div>
-              <p class="studio-hint"><i class="ri-magic-line"></i>Détectées depuis le logo. Clique sur une pastille pour l'ajuster.</p>
-              <input class="field" id="studioWebsite" value="${escapeHtml(draft.website)}" placeholder="Site web du client (facultatif) : acme.fr">
+              <p class="studio-hint"><i class="ri-magic-line"></i>Détectées depuis le logo. Avec le site web, l'IA reprend aussi ses polices et toute sa charte.</p>
+              <input class="field" id="studioWebsite" value="${escapeHtml(draft.website)}" placeholder="Site web du client : acme.fr (recommandé, sa DA est reprise)">
             </div>
           </div>
         </section>
@@ -199,7 +199,7 @@ function renderForm(lead: Lead, draft: Draft): void {
         </details>
 
         <div class="form-actions">
-          <span class="spacer studio-hint"><i class="ri-time-line"></i>2 à 3 min, plus la transcription</span>
+          <span class="spacer studio-hint"><i class="ri-time-line"></i>3 à 5 min, plus la transcription</span>
           <button class="btn" type="button" data-close-modal>Annuler</button>
           <button class="btn primary" type="submit"><i class="ri-sparkling-2-line"></i>Générer</button>
         </div>
@@ -385,7 +385,7 @@ async function run(lead: Lead, draft: Draft): Promise<void> {
       seller: { name: state.profile?.full_name || '', email: state.profile?.email || '' },
     }
 
-    const content = await generateContent(input, (step, stepState) => {
+    const content = await generateContent(input, draft.brand, (step, stepState) => {
       job.steps[step] = stepState
       refresh()
     })

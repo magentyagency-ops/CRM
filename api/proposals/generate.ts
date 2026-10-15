@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import type { Brief, GenerateStep, StudioInput } from '../../src/proposals/model.js'
 import { HttpError, requireActiveUser, respond } from '../_lib/guard.js'
-import { generateJson, websiteExcerpt } from '../_lib/openai.js'
-import { SCHEMAS, buildPrompt } from '../_lib/proposalSpec.js'
+import { readGeneration, readWebsite, startGeneration } from '../_lib/openai.js'
+import { type BrandInput, SCHEMAS, buildPrompt } from '../_lib/proposalSpec.js'
 
 /**
  * Génère une étape du dossier commercial d'un prospect.
@@ -10,9 +10,12 @@ import { SCHEMAS, buildPrompt } from '../_lib/proposalSpec.js'
  * Le navigateur appelle d'abord l'étape `brief` (analyse du besoin), puis les
  * étapes `deck`, `proposal` et `techdoc` en parallèle avec cette analyse : les
  * trois documents partagent ainsi le même périmètre et les mêmes prix.
+ *
+ * POST lance la génération en tâche de fond et renvoie son identifiant ;
+ * GET ?id=… indique si elle est terminée et renvoie alors son résultat.
  */
 
-export const config = { maxDuration: 300 }
+export const config = { maxDuration: 60 }
 
 const STEPS: GenerateStep[] = ['brief', 'deck', 'proposal', 'techdoc']
 
@@ -49,9 +52,31 @@ function readInput(raw: unknown): StudioInput {
   }
 }
 
+/** Couleurs et logo : le logo n'est accepté qu'en image intégrée raisonnable. */
+function readBrand(raw: unknown): BrandInput | null {
+  if (!raw || typeof raw !== 'object') return null
+  const value = raw as Partial<BrandInput>
+  const color = (field: unknown) => (/^#[0-9a-f]{3,8}$/i.test(String(field ?? '')) ? String(field) : '')
+  const logo = String(value.logo ?? '')
+  return {
+    primary: color(value.primary),
+    secondary: color(value.secondary),
+    logo: /^data:image\/(png|jpeg|webp|gif);base64,/i.test(logo) && logo.length < 3_000_000 ? logo : '',
+  }
+}
+
 export default async function handler(request: VercelRequest, response: VercelResponse): Promise<void> {
+  if (request.method === 'GET') {
+    await respond(response, 'proposals/generate', async () => {
+      await requireActiveUser(request)
+      const state = await readGeneration(String(request.query.id ?? ''))
+      return state.done ? { done: true, result: state.result } : { done: false }
+    })
+    return
+  }
+
   if (request.method !== 'POST') {
-    response.setHeader('Allow', 'POST')
+    response.setHeader('Allow', 'GET, POST')
     response.status(405).json({ error: 'Méthode non autorisée.' })
     return
   }
@@ -66,9 +91,9 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const brief = step === 'brief' ? null : ((body.brief ?? null) as Brief | null)
     if (step !== 'brief' && !brief) throw new HttpError(400, "L'analyse du besoin est requise.")
 
-    const website = step === 'brief' || step === 'deck' ? await websiteExcerpt(input.website) : ''
-    const prompt = buildPrompt(step, input, brief, website)
-    const result = await generateJson({ name: step, schema: SCHEMAS[step], ...prompt })
-    return { step, result }
+    const website = step === 'brief' || step === 'deck' ? await readWebsite(input.website) : { text: '', identity: '' }
+    const prompt = buildPrompt(step, input, brief, website, readBrand(body.brand))
+    const id = await startGeneration({ name: step, schema: SCHEMAS[step], ...prompt })
+    return { step, id }
   })
 }
