@@ -108,8 +108,9 @@ table.data small{display:block;color:var(--muted);font-size:13px;margin-top:3px}
 }`
 
 function shell(title: string, content: GeneratedContent, brand: Brand, inner: string): string {
-  const palette = paletteOf(brand)
-  const fonts = fontsOf(content.brief.typography)
+  // Les documents portent la charte Nira ; seul le logo du client y figure.
+  const palette = paletteOf({ primary: '#0077FC', secondary: '#231F20' })
+  const fonts = fontsOf('moderne')
   return `<!doctype html>
 <html lang="fr">
 <head>

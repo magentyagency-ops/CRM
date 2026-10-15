@@ -131,9 +131,31 @@ export interface FreeDeck {
   slides: { title: string; html: string }[]
 }
 
-export type Deck = LegacyDeck | FreeDeck
+/** Pictogrammes disponibles dans le gabarit Nira. */
+export type NiraIconName =
+  | 'map' | 'bulb' | 'chart' | 'gauge' | 'bolt' | 'route' | 'clipboard'
+  | 'compass' | 'people' | 'search' | 'handshake' | 'brain' | 'layers'
+
+/**
+ * Présentation au gabarit Nira : les slides fixes (approche, références,
+ * méthode, offre…) viennent du gabarit, le modèle n'écrit que les slides
+ * consacrées au besoin du client.
+ */
+export interface NiraDeck {
+  understood: { intro: string; pills: string[] }
+  figures: { value: string; label: string; detail: string }[]
+  quote: { text: string; author: string }
+  opportunities: { title: string; text: string }[]
+  flows: { title: string; today: string[]; withAi: string[] }[]
+  leads: { title: string; text: string }[]
+  build: { title: string; text: string; icon: NiraIconName }[]
+  offer: { name: string; description: string; includes: string[] }
+}
+
+export type Deck = LegacyDeck | FreeDeck | NiraDeck
 
 export const isFreeDeck = (deck: Deck): deck is FreeDeck => 'css' in deck
+export const isNiraDeck = (deck: Deck): deck is NiraDeck => 'understood' in deck
 
 /* --------------------------------------------------- proposition écrite */
 

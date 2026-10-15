@@ -1,4 +1,5 @@
-import { type Brand, type FreeDeck, type GeneratedContent, type Slide, type StudioInput, isFreeDeck } from '../model.js'
+import { type Brand, type FreeDeck, type GeneratedContent, type Slide, type StudioInput, isFreeDeck, isNiraDeck } from '../model.js'
+import { renderNiraDeck } from './nira.js'
 import { esc, fontsOf, lines, longDate, money, niraMark, paletteCss, paletteOf } from '../theme.js'
 import { pricingOf } from './common.js'
 import { KIT_CSS } from './kit.js'
@@ -515,6 +516,7 @@ ready.then(() => {
 addEventListener('beforeprint', fitAll)`
 
 export function renderDeck(content: GeneratedContent, brand: Brand, input: StudioInput): string {
+  if (isNiraDeck(content.deck)) return renderNiraDeck(content, input)
   if (isFreeDeck(content.deck)) return renderFreeDeck(content.deck, content, brand, input)
   const palette = paletteOf(brand)
   const fonts = fontsOf(content.brief.typography)
@@ -578,7 +580,7 @@ function sanitizeCss(css: string): string {
     .replace(/expression\s*\(/gi, 'none(')
 }
 
-const FREE_CSS = `
+export const FREE_CSS = `
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#0b0e13;font-family:var(--f-body);color:var(--ink);-webkit-font-smoothing:antialiased}
 body{overflow:hidden}
@@ -609,10 +611,11 @@ body{overflow:hidden}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }`
 
-const FREE_SCRIPT = SCRIPT.replace(
+export const FREE_SCRIPT = SCRIPT.replace(
   /function fitSlide[\s\S]*?\n}\n\nfunction fitAll/,
   `function fitSlide(slide) {
   const inner = slide.querySelector('.inner')
+  if (!inner) return
   inner.style.transform = ''
   inner.style.height = '${H}px'
   const height = Math.max(inner.scrollHeight, ${H})

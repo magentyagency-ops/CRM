@@ -131,12 +131,8 @@ function renderForm(lead: Lead, draft: Draft): void {
               }
             </label>
             <div class="brand-side">
-              <div class="swatches">
-                <label class="color-pick"><input type="color" id="colorPrimary" value="${draft.brand.primary}"><span><b>Couleur principale</b><small>${draft.brand.primary}</small></span></label>
-                <label class="color-pick"><input type="color" id="colorSecondary" value="${draft.brand.secondary || '#203040'}"><span><b>Secondaire</b><small>${draft.brand.secondary || 'auto'}</small></span></label>
-              </div>
-              <p class="studio-hint"><i class="ri-magic-line"></i>Détectées depuis le logo. Avec le site web, l'IA reprend aussi ses polices et toute sa charte.</p>
-              <input class="field" id="studioWebsite" value="${escapeHtml(draft.website)}" placeholder="Site web du client : acme.fr (recommandé, sa DA est reprise)">
+              <p class="studio-hint"><i class="ri-information-line"></i>Facultatif : le logo apparaît en en-tête de la proposition. La présentation reste aux couleurs de Nira.</p>
+              <input class="field" id="studioWebsite" value="${escapeHtml(draft.website)}" placeholder="Site web du client (facultatif) : acme.fr">
             </div>
           </div>
         </section>
@@ -199,7 +195,7 @@ function renderForm(lead: Lead, draft: Draft): void {
         </details>
 
         <div class="form-actions">
-          <span class="spacer studio-hint"><i class="ri-time-line"></i>3 à 5 min, plus la transcription</span>
+          <span class="spacer studio-hint"><i class="ri-time-line"></i>2 à 3 min, plus la transcription</span>
           <button class="btn" type="button" data-close-modal>Annuler</button>
           <button class="btn primary" type="submit"><i class="ri-sparkling-2-line"></i>Générer</button>
         </div>
@@ -261,15 +257,6 @@ function bindForm(panel: HTMLElement, lead: Lead, draft: Draft): void {
     takeLogo((event.target as HTMLInputElement).files?.[0]),
   )
   dropZone(logoDrop, (files) => takeLogo(files[0]))
-
-  panel.querySelectorAll<HTMLInputElement>('input[type="color"]').forEach((input) =>
-    input.addEventListener('input', () => {
-      if (input.id === 'colorPrimary') draft.brand.primary = input.value
-      else draft.brand.secondary = input.value
-      const small = input.parentElement?.querySelector('small')
-      if (small) small.textContent = input.value
-    }),
-  )
 
   panel.querySelectorAll<HTMLInputElement>('input[name="sale"]').forEach((radio) =>
     radio.addEventListener('change', () => {

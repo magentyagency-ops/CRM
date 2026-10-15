@@ -116,16 +116,51 @@ const briefSchema = obj({
   missingInfo: arr(str(), 'Points que le commercial doit vérifier avant envoi (informations manquantes, hypothèses prises)'),
 })
 
+const ICONS = ['map', 'bulb', 'chart', 'gauge', 'bolt', 'route', 'clipboard', 'compass', 'people', 'search', 'handshake', 'brain', 'layers']
+
 const deckSchema = obj({
-  concept: str('La direction artistique retenue, en 3 phrases : ce que tu as observé de l’identité du client, et comment la présentation la prolonge'),
-  fonts: arr(str('Nom exact d’une famille Google Fonts, ex. « Inter », « Playfair Display »'), '1 ou 2 polices : celles du client si elles existent sur Google Fonts, sinon les plus proches'),
-  css: str('Feuille de style complète de la présentation (sans balise <style>), classes préfixées d-'),
-  slides: arr(
+  understood: obj(
+    {
+      intro: str("Phrase d'introduction, 4 à 8 mots, ex. « Aujourd'hui Mercer dispose déjà : » ou « Aujourd'hui, chez Qonto : »"),
+      pills: arr(str('2 à 6 mots, ex. « D’une équipe IA », « 18 000 tickets par mois »'), '3 à 4 constats factuels sur la situation actuelle du client'),
+    },
+    'Slide « Ce que nous avons compris »',
+  ),
+  figures: arr(
+    obj({ value: str('Très court : « 6 j », « 22 % », « 18k »'), label: str('2 à 5 mots'), detail: str('12 mots maximum') }),
+    'Slide « Vos enjeux en chiffres » : 2 à 4 chiffres RÉELLEMENT cités par le client. Liste vide s’il n’y en a pas.',
+  ),
+  quote: obj(
+    { text: str('Citation exacte du client, 30 mots maximum ; vide si aucune phrase forte'), author: str('Prénom Nom, fonction') },
+    'Slide « Ce que vous nous avez dit »',
+  ),
+  opportunities: arr(
+    obj({ title: str('1 à 3 mots : le domaine (« Commercial », « Salesforce », « Budget »)'), text: str('Le problème constaté, 20 à 28 mots') }),
+    'Slide « Les opportunités que nous avons identifiées » : exactement 3',
+  ),
+  flows: arr(
     obj({
-      title: str('Titre court de la slide, pour la navigation'),
-      html: str("Contenu HTML de la slide, sans la balise <section> qui l'entoure"),
+      title: str('Le processus, 3 à 7 mots, ex. « Le traitement d’un appel client »'),
+      today: arr(str('1 à 3 mots'), '4 à 6 étapes actuelles, dans l’ordre'),
+      withAi: arr(str('1 à 3 mots'), '3 à 5 étapes avec l’IA, plus courtes'),
     }),
-    '7 à 14 slides',
+    'Slides « Aujourd’hui / Avec l’IA » : 1 ou 2 processus clés du client',
+  ),
+  leads: arr(
+    obj({ title: str('1 à 3 mots'), text: str('Ce que l’IA ou l’automatisation peut faire, 12 à 20 mots') }),
+    'Slide « Quelques pistes déjà identifiées » : exactement 4',
+  ),
+  build: arr(
+    obj({ title: str('2 à 5 mots'), text: str('10 à 16 mots'), icon: { type: 'string', enum: ICONS } }),
+    'Slide « Ce que nous allons construire » (vente de logiciel) : 4 à 7 fonctionnalités. Liste vide pour un audit seul.',
+  ),
+  offer: obj(
+    {
+      name: str('Nom de l’offre, 2 à 4 mots, ex. « Audit Approfondi », « Assistant Devis IA »'),
+      description: str('Une phrase, 15 à 25 mots'),
+      includes: arr(str('2 à 5 mots'), '3 à 6 éléments inclus'),
+    },
+    'Carte de prix (le prix est ajouté automatiquement)',
   ),
 })
 
@@ -271,44 +306,22 @@ ${STYLE}`,
   }
 
   if (step === 'deck') {
-    const identity = [
-      brand?.logo ? "Le logo du client est joint en image : observe sa forme, sa typographie, son niveau de sophistication, son ambiance." : "Aucun logo fourni.",
-      brand ? `Couleurs relevées sur le logo : principale ${brand.primary}${brand.secondary ? `, secondaire ${brand.secondary}` : ''}.` : '',
-      site.identity ? `Relevé du site web du client :\n${site.identity}` : "Site web non fourni ou illisible : déduis l'identité du logo, du secteur et du discours du client.",
-    ]
-      .filter(Boolean)
-      .join('\n')
     return {
-      effort: 'high',
-      image: brand?.logo || undefined,
+      effort: 'medium',
       instructions: `${NIRA}
 
-Tu es directeur artistique et stratège dans une agence de design de premier plan. Tu crées ENTIÈREMENT SUR MESURE la présentation commerciale que Nira projettera au R2 devant ce prospect : le récit, la direction artistique, la mise en page et le code HTML/CSS de chaque slide. Il n'existe ni gabarit, ni bibliothèque, ni exemple à suivre : une page blanche, pour ce client et lui seul.
+Tu prépares le contenu de la présentation commerciale que Nira projette au R2. Elle suit le gabarit maison de Nira : les slides de présentation de Nira (approche, références, méthode, suites, offre) sont fixes. Tu écris UNIQUEMENT les slides consacrées au client et à son besoin, qui font la différence :
+- « Ce que nous avons compris » : sa situation actuelle, en constats factuels courts ;
+- « Vos enjeux en chiffres » : ses vrais chiffres ;
+- « Ce que vous nous avez dit » : sa phrase la plus forte, mot pour mot ;
+- « Les opportunités que nous avons identifiées » : ses 3 problèmes majeurs ;
+- « Aujourd'hui / Avec l'IA » : ses processus réels, étape par étape, et leur version avec l'IA ;
+- « Quelques pistes déjà identifiées » : 4 pistes concrètes ;
+- « Ce que nous allons construire » : uniquement si Nira vend un logiciel ;
+- la carte d'offre.
 
-# 1. Le fond : ses besoins réels
-Relis tout le dossier et l'analyse. Identifie ce que ce prospect veut vraiment obtenir, ce qui le freine, ce qui le fera signer, et qui décide. La présentation est la réponse à CES enjeux, dans SES mots : ses chiffres, ses outils, ses équipes, ses citations exactes, la démo qu'il a vue. Choisis la structure (7 à 14 slides) qui sert le mieux ce récit précis : il n'y a pas de trame imposée. Une slide = une idée forte. Obligatoire : l'ouverture avec son logo, la proposition et son prix ({{PRICE}}), la prochaine étape.
-
-# 2. La forme : la direction artistique DU CLIENT
-La présentation doit sembler sortir de chez le client : on doit y reconnaître sa marque au premier coup d'œil.
-${identity}
-- Reprends SES couleurs exactes (codes hexadécimaux du site et du logo) comme palette principale, dans les proportions de sa marque : une marque sobre reste sobre, une marque vive reste vive. Définis tes propres variables CSS dans :root.
-- Reprends SES polices (champ « fonts ») si elles sont sur Google Fonts, sinon les plus proches en caractère.
-- Prolonge son univers : angles vifs ou formes douces comme sur son site, densité, usage des capitales, motifs graphiques inspirés de son logo ou de son métier (dessinés en CSS ou en SVG).
-- Le logo s'affiche avec <img class="client-logo" src="{{LOGO}}" alt="${input.company}"> ; fixe sa hauteur dans ton CSS. Place-le sur un fond où il est parfaitement lisible.
-
-# 3. L'exigence : créatif, professionnel, aéré
-- Niveau attendu : une agence de design haut de gamme. Chaque slide est une composition pensée, pas un document.
-- De l'air : marges généreuses (au moins 100 px), beaucoup de vide, une seule idée par slide, 35 mots maximum hors schéma. Taille du texte : jamais moins de 20 px ; titres de 56 à 150 px.
-- Une vraie hiérarchie, de la variété d'une slide à l'autre (compositions asymétriques, pleine page de couleur, très grand chiffre, citation seule, schéma, comparaison), et un fil visuel commun qui fait système.
-- Visualise les idées : schémas de processus, comparaisons avant / après, graphiques à partir des vrais chiffres, cartographie des outils, en HTML/CSS ou en SVG.
-- Proscrits : listes à puces en série, cartes toutes identiques, textes serrés, dégradés criards, emojis, clichés de « présentation d'agence IA » (robots, cerveaux, circuits) sauf si c'est l'univers du client.
-
-# 4. Contraintes techniques (impératives)
-- Chaque slide est une toile fixe de 1600 × 900 px (élément <section class="slide"> en position:relative, overflow:hidden, fourni). Ton HTML la remplit, typiquement avec un conteneur en position:absolute; inset:0.
-- Tu ne vois pas le rendu : construis les mises en page avec CSS Grid et Flexbox, jamais avec des éléments positionnés au pixel près qui doivent s'aligner entre eux. Ne dessine pas de traits de liaison entre des blocs HTML : pour un schéma relié, fais-le entièrement dans un seul SVG avec son viewBox, ou utilise des flèches posées entre les blocs dans la grille. Les éléments en position absolue ne servent qu'au décor.
-- Compte la place : le contenu doit tenir dans 900 px de haut sans débordement. Et à l'inverse, occupe toute la toile : équilibre la composition sur toute la hauteur (centrage vertical, éléments ancrés en bas, grand visuel), jamais un bloc tassé en haut avec un grand vide dessous.
-- Toutes tes classes sont préfixées « d- ». Pas de <script>, pas d'attribut on…, pas d'url() ni d'image externe, pas d'@import (les polices sont chargées à partir du champ « fonts »). La navigation et la numérotation sont ajoutées automatiquement en bas à droite (laisse 60 px libres dans ce coin).
-- Placeholders : {{LOGO}}, {{PRICE}}, {{SELLER}} (le commercial), {{DATE}}.
+C'est du ${saleLabel(input)} que Nira vend ici : adapte le vocabulaire (un audit identifie et chiffre, un logiciel automatise et équipe).
+Chaque mot vient des échanges avec ce client : ses outils (cités par leur nom), ses équipes, ses volumes, ses irritants. Le style est celui de Nira : direct, simple, sans jargon, des phrases nominales courtes.
 
 ${STYLE}`,
       input: `${dossier(input, true, website)}\n\n${brief ? briefJson(brief) : ''}`,
