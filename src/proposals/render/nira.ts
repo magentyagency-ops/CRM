@@ -53,15 +53,6 @@ function cover(ctx: Ctx): string {
   )
 }
 
-function interlude(): string {
-  return slide(
-    'n-interlude',
-    `<img class="n-blob" src="${A.blob}" style="left:290px;top:-796px;width:1177px;height:1174px" alt="">
-     <img class="n-blob" src="${A.blob}" style="left:-45px;top:643px;width:679px;height:677px" alt="">`,
-    'Transition',
-  )
-}
-
 function approach(ctx: Ctx): string {
   const items: [string, string, string, number, number][] = [
     [A.approachMetier, 'Vision métier', 'Comprendre les enjeux opérationnels et identifier les leviers de performance.', 730, 110],
@@ -328,12 +319,12 @@ function pricing(ctx: Ctx, deck: NiraDeck, total: number): string {
     'n-price',
     `<img class="n-blob" src="${A.blob}" style="left:-20px;top:135px;width:1449px;height:1446px" alt="">
      ${header(ctx, 'plain')}
-     <div class="n-offer">
+     <div class="n-offer-wrap"><div class="n-offer">
        <h3>${esc(deck.offer.name)}</h3>
        <span class="n-price-pill">${esc(money(total).replace(/\s(?=\d)/g, '.'))}</span>
        <p>${esc(deck.offer.description)}</p>
-       <div class="n-offer-list">${deck.offer.includes.map((item) => esc(item)).join('<br>')}</div>
-     </div>`,
+       <div class="n-offer-list">${deck.offer.includes.slice(0, 5).map((item) => `<span>${esc(item)}</span>`).join('')}</div>
+     </div></div>`,
     'Proposition',
   )
 }
@@ -445,11 +436,12 @@ const CSS = `
 
 /* offre */
 .n-big{left:0;top:0;width:1600px;height:900px;margin:0;display:grid;place-items:center;font:500 220px/1 'Inter Tight',Arial,sans-serif;letter-spacing:-.05em;color:#231F20}
-.n-offer{left:470px;top:150px;width:660px;padding:50px 56px 56px;border-radius:44px;background:rgba(245,245,245,.92);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;gap:28px;text-align:center}
-.n-offer h3{margin:0;font:500 58px/1.05 'Inter Tight',Arial,sans-serif;letter-spacing:-.03em;color:#231F20}
-.n-price-pill{padding:8px 28px;border-radius:20px;background:${BLUE};color:${GREY};font:700 46px/1.2 'Inter Tight',Arial,sans-serif;letter-spacing:-.02em}
-.n-offer p{margin:0;font:300 26px/1.35 'Inter Tight',Arial,sans-serif;color:#231F20}
-.n-offer-list{width:100%;padding:24px 22px;border-radius:16px;background:#333;color:#fff;font:300 27px/1.45 'Inter Tight',Arial,sans-serif}
+.n-offer-wrap{left:0;top:110px;width:1600px;height:760px;display:flex;align-items:center;justify-content:center}
+.n-offer{position:relative;width:720px;max-height:740px;padding:44px 52px 48px;border-radius:44px;background:rgba(245,245,245,.94);display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;overflow:hidden}
+.n-offer h3{margin:0;font:500 52px/1.08 'Inter Tight',Arial,sans-serif;letter-spacing:-.03em;color:#231F20}
+.n-price-pill{padding:8px 28px;border-radius:20px;background:${BLUE};color:${GREY};font:700 44px/1.2 'Inter Tight',Arial,sans-serif;letter-spacing:-.02em;white-space:nowrap}
+.n-offer p{margin:0;font:300 24px/1.35 'Inter Tight',Arial,sans-serif;color:#231F20}
+.n-offer-list{width:100%;padding:22px 24px;border-radius:16px;background:#333;color:#fff;display:flex;flex-direction:column;gap:6px;font:300 24px/1.35 'Inter Tight',Arial,sans-serif}
 `
 
 export function renderNiraDeck(content: GeneratedContent, input: StudioInput): string {
@@ -457,7 +449,7 @@ export function renderNiraDeck(content: GeneratedContent, input: StudioInput): s
   const ctx: Ctx = { client: input.company, sale: input.sale, year: new Date().getFullYear() }
   const { total } = pricingOf(content.brief, input)
 
-  const slides: string[] = [cover(ctx), interlude(), approach(ctx), references(ctx), understood(ctx, deck)]
+  const slides: string[] = [cover(ctx), approach(ctx), references(ctx), understood(ctx, deck)]
   if (deck.figures.length) slides.push(figures(ctx, deck))
   if (deck.quote.text.trim()) slides.push(quote(ctx, deck))
   slides.push(opportunities(ctx, deck), statement(ctx), warning(ctx))
