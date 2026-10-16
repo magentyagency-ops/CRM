@@ -6,7 +6,7 @@ import { $, escapeHtml, toast } from '../ui.js'
 import { isAudioFile, transcribeFiles } from './audio.js'
 import { prepareLogo } from './brand.js'
 import type { Brand, GenerateStep, ProposalRecord, SaleKind, StudioInput } from './model.js'
-import { SALE_KINDS } from './model.js'
+import { type DeckTemplate, SALE_KINDS } from './model.js'
 import {
   DOC_KINDS,
   type DocKind,
@@ -31,6 +31,7 @@ export const PROPOSALS_CHANGED = 'proposals:changed'
 interface Draft {
   brand: Brand
   website: string
+  template: DeckTemplate
   sale: SaleKind
   price: number
   offerDescription: string
@@ -79,6 +80,7 @@ async function initialDraft(lead: Lead): Promise<Draft> {
   return {
     brand: previous?.brand ?? { logo: '', primary: '#1976d2', secondary: '' },
     website: previous?.input.website ?? '',
+    template: previous?.input.template ?? 'nira',
     sale: previous?.input.sale ?? sale,
     price: lead.value || previous?.input.price || 0,
     offerDescription: previous?.input.offerDescription ?? '',
@@ -120,7 +122,11 @@ function renderForm(lead: Lead, draft: Draft): void {
 
       <form id="studioForm" class="studio-form">
         <section class="studio-block">
-          <p class="studio-label"><span>1</span>Identité du client</p>
+          <p class="studio-label"><span>1</span>Template de la présentation</p>
+          <div class="segmented" role="radiogroup">
+            <label class="${draft.template === 'nira' ? 'active' : ''}"><input type="radio" name="template" value="nira"${draft.template === 'nira' ? ' checked' : ''}>Template Nira</label>
+            <label class="${draft.template === 'custom' ? 'active' : ''}"><input type="radio" name="template" value="custom"${draft.template === 'custom' ? ' checked' : ''}>Personnalisé (DA du client)</label>
+          </div>
           <div class="brand-row">
             <label class="logo-drop${draft.brand.logo ? ' has-logo' : ''}" id="logoDrop" title="Changer le logo">
               <input type="file" id="logoInput" accept="image/*" hidden>
@@ -131,8 +137,16 @@ function renderForm(lead: Lead, draft: Draft): void {
               }
             </label>
             <div class="brand-side">
-              <p class="studio-hint"><i class="ri-information-line"></i>Facultatif : le logo apparaît en en-tête de la proposition. La présentation reste aux couleurs de Nira.</p>
-              <input class="field" id="studioWebsite" value="${escapeHtml(draft.website)}" placeholder="Site web du client (facultatif) : acme.fr">
+              <div class="swatches" id="brandColors"${draft.template === 'custom' ? '' : ' hidden'}>
+                <label class="color-pick"><input type="color" id="colorPrimary" value="${draft.brand.primary}"><span><b>Couleur principale</b><small>${draft.brand.primary}</small></span></label>
+                <label class="color-pick"><input type="color" id="colorSecondary" value="${draft.brand.secondary || '#203040'}"><span><b>Secondaire</b><small>${draft.brand.secondary || 'auto'}</small></span></label>
+              </div>
+              <p class="studio-hint" id="brandHint">${
+                draft.template === 'custom'
+                  ? "<i class=\"ri-magic-line\"></i>Couleurs détectées depuis le logo. Avec le site web, l'IA reprend aussi ses polices et toute sa charte."
+                  : '<i class="ri-information-line"></i>Facultatif : le logo apparaît en en-tête de la proposition.'
+              }</p>
+              <input class="field" id="studioWebsite" value="${escapeHtml(draft.website)}" placeholder="Site web du client : acme.fr">
             </div>
           </div>
         </section>
@@ -208,6 +222,7 @@ function renderForm(lead: Lead, draft: Draft): void {
 function readForm(panel: HTMLElement, draft: Draft): void {
   const value = (id: string) => $<HTMLInputElement>(`#${id}`, panel).value.trim()
   draft.website = value('studioWebsite')
+  draft.template = (panel.querySelector<HTMLInputElement>('input[name="template"]:checked')?.value as DeckTemplate) ?? 'nira'
   draft.sale = (panel.querySelector<HTMLInputElement>('input[name="sale"]:checked')?.value as SaleKind) ?? 'audit'
   draft.price = Number(value('studioPrice')) || 0
   draft.includeTechDoc = $<HTMLInputElement>('#studioTechDoc', panel).checked
@@ -257,6 +272,19 @@ function bindForm(panel: HTMLElement, lead: Lead, draft: Draft): void {
     takeLogo((event.target as HTMLInputElement).files?.[0]),
   )
   dropZone(logoDrop, (files) => takeLogo(files[0]))
+
+  panel.querySelectorAll<HTMLInputElement>('input[name="template"]').forEach((radio) =>
+    radio.addEventListener('change', rerender),
+  )
+
+  panel.querySelectorAll<HTMLInputElement>('input[type="color"]').forEach((input) =>
+    input.addEventListener('input', () => {
+      if (input.id === 'colorPrimary') draft.brand.primary = input.value
+      else draft.brand.secondary = input.value
+      const small = input.parentElement?.querySelector('small')
+      if (small) small.textContent = input.value
+    }),
+  )
 
   panel.querySelectorAll<HTMLInputElement>('input[name="sale"]').forEach((radio) =>
     radio.addEventListener('change', () => {
@@ -357,6 +385,7 @@ async function run(lead: Lead, draft: Draft): Promise<void> {
     }
 
     const input: StudioInput = {
+      template: draft.template,
       company: lead.company || lead.contact,
       contact: lead.contact,
       contactRole: lead.role,

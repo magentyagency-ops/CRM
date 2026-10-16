@@ -16,6 +16,9 @@ export const SALE_KINDS: Record<SaleKind, string> = {
   'audit-logiciel': 'Audit + logiciel',
 }
 
+/** Gabarit de la présentation : maison Nira, ou entièrement aux couleurs du client. */
+export type DeckTemplate = 'nira' | 'custom'
+
 export type Typography = 'moderne' | 'editorial' | 'tech' | 'classique'
 
 export interface Billing {
@@ -29,6 +32,8 @@ export interface Billing {
 }
 
 export interface StudioInput {
+  /** Absent sur les dossiers créés avant le choix du gabarit : gabarit Nira. */
+  template?: DeckTemplate
   company: string
   contact: string
   contactRole: string

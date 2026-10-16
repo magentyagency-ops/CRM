@@ -164,6 +164,20 @@ const deckSchema = obj({
   ),
 })
 
+/** Présentation au gabarit personnalisé : le modèle écrit tout, HTML et CSS compris. */
+export const CUSTOM_DECK_SCHEMA = obj({
+  concept: str('La direction artistique retenue, en 3 phrases : ce que tu as observé de l’identité du client, et comment la présentation la prolonge'),
+  fonts: arr(str('Nom exact d’une famille Google Fonts, ex. « Inter », « Playfair Display »'), '1 ou 2 polices : celles du client si elles existent sur Google Fonts, sinon les plus proches'),
+  css: str('Feuille de style complète de la présentation (sans balise <style>), classes préfixées d-'),
+  slides: arr(
+    obj({
+      title: str('Titre court de la slide, pour la navigation'),
+      html: str("Contenu HTML de la slide, sans la balise <section> qui l'entoure"),
+    }),
+    '14 à 20 slides',
+  ),
+})
+
 const proposalSchema = obj({
   title: str('Titre de la proposition, orienté bénéfice'),
   objet: str(),
@@ -302,6 +316,74 @@ Méthode :
 
 ${STYLE}`,
       input: dossier(input, true, website),
+    }
+  }
+
+  if (step === 'deck' && input.template === 'custom') {
+    const identity = [
+      brand?.logo ? "Le logo du client est joint en image : observe sa forme, sa typographie, son niveau de sophistication, son ambiance." : "Aucun logo fourni.",
+      brand?.primary ? `Couleurs relevées sur le logo : principale ${brand.primary}${brand.secondary ? `, secondaire ${brand.secondary}` : ''}.` : '',
+      site.identity ? `Relevé du site web du client :\n${site.identity}` : "Site web non fourni ou illisible : déduis l'identité du logo, du secteur et du discours du client.",
+    ]
+      .filter(Boolean)
+      .join('\n')
+    const isAudit = input.sale !== 'logiciel'
+    const isSoftware = input.sale !== 'audit'
+    return {
+      effort: 'high',
+      image: brand?.logo || undefined,
+      instructions: `${NIRA}
+
+Tu es directeur artistique et stratège dans une agence de design de premier plan. Tu crées la présentation commerciale que Nira projettera au R2 devant ce prospect, ENTIÈREMENT aux couleurs et dans l'univers du client : le récit, la direction artistique, la mise en page et le code HTML/CSS de chaque slide.
+
+# 1. La structure (14 à 20 slides, dans cet ordre)
+
+## A. Ouverture et présentation de Nira (fixe sur le fond, à mettre en forme dans la DA du client)
+1. Couverture : son logo, « Nira × ${input.company} », un titre qui annonce le bénéfice pour lui, {{DATE}}.
+2. Notre approche — « Nous accompagnons les organisations dans la création d'outils internes alimentés par l'IA, utiles et adaptés à leurs contraintes opérationnelles. » et ses 4 piliers : Vision métier (comprendre les enjeux opérationnels et identifier les leviers de performance) ; Conception sur-mesure (imaginer des solutions adaptées aux contextes, aux équipes et aux usages) ; Accélération par l'IA (automatiser, simplifier, gagner en efficacité au quotidien) ; Impact durable (déployer des outils utiles, pérennes et réellement appropriables).
+3. Ils nous font confiance — un titre, puis exactement {{REF_LOGOS}} seul dans un bloc pleine largeur (au moins 1100 px de large, 380 px de haut) : il est remplacé par une grille de 8 logos en tuiles blanches déjà mises en forme. Ne le stylise pas, soigne seulement le fond de la slide autour.
+
+## B. Le besoin du client (le cœur : 5 à 8 slides)
+Ce que nous avons compris, ses chiffres, sa citation la plus forte, les opportunités identifiées, ses processus aujourd'hui et avec l'IA, les pistes concrètes. C'est ici que tu fais la différence : choisis pour CHAQUE idée la mise en scène la plus intelligente et la plus parlante (un grand chiffre seul, un schéma de flux, une comparaison avant / après, une cartographie de ses outils, un graphique tiré de ses vrais chiffres, une citation pleine page, une matrice impact / effort…). Jamais deux fois la même mise en page à la suite.
+${isAudit ? `
+## C. Comment se passe l'audit (4 à 5 slides, contenu de Nira à respecter)
+- Pourquoi un audit : « Les entreprises cherchent souvent directement : "Construisons un agent IA". Alors que la vraie question est : quel processus mérite réellement un agent IA ? » ; et sans cartographie : mauvais ROI, mauvais choix techniques, automatisations peu utilisées.
+- La méthodologie en 6 étapes, chacune expliquée en une phrase adaptée au client : Découverte, Entretiens, Cartographie, Analyse, Opportunités, Restitution.
+- Ce que vous obtenez à la fin de l'audit : cartographie des processus, liste des opportunités IA, estimation du ROI, niveau de difficulté, quick wins, roadmap de déploiement, catalogue des automatisations.
+- Et ensuite ? Vous restez totalement libres : développer en interne (vous exécutez la roadmap avec vos équipes), travailler avec Nira (nous concevons et déployons les automatisations avec vous), mixer les deux (vous gardez la main, nous intervenons sur des chantiers ciblés).` : ''}${isSoftware ? `
+## ${isAudit ? 'C bis' : 'C'}. Comment se passe le projet logiciel (3 à 4 slides)
+- Ce que nous allons construire : les fonctionnalités, reliées à ses processus et à ses outils.
+- La méthode en 6 étapes, chacune expliquée en une phrase adaptée au client : Cadrage, Ateliers, Conception, Développement, Tests, Déploiement.
+- Après la mise en service : formation des équipes, maintenance et suivi, nouvelles briques quand il le décide.` : ''}
+
+## D. Conclusion
+- L'offre : son nom, ce qui est inclus, le prix {{PRICE}} (TTC, TVA non applicable).
+- La prochaine étape, qui déclenche la décision. Signature : {{SELLER}}, Nira.
+
+# 2. La forme : la direction artistique DU CLIENT
+La présentation doit sembler sortir de chez le client : on doit y reconnaître sa marque au premier coup d'œil, y compris sur les slides qui présentent Nira.
+${identity}
+- Reprends SES couleurs exactes (codes hexadécimaux du site et du logo) comme palette principale, dans les proportions de sa marque. Définis tes propres variables CSS dans :root.
+- Reprends SES polices (champ « fonts ») si elles sont sur Google Fonts, sinon les plus proches en caractère.
+- Prolonge son univers : angles vifs ou formes douces comme sur son site, densité, usage des capitales, motifs graphiques inspirés de son logo ou de son métier (CSS ou SVG).
+- Son logo : <img class="client-logo" src="{{LOGO}}" alt="${input.company}"> ; fixe sa hauteur dans ton CSS, sur un fond où il est parfaitement lisible.
+
+# 3. L'exigence : créatif, professionnel, aéré
+- Niveau attendu : une agence de design haut de gamme. Chaque slide est une composition pensée.
+- De l'air : marges d'au moins 100 px, une seule idée par slide, 35 mots maximum hors schéma. Texte jamais sous 20 px ; titres de 56 à 150 px.
+- Variété de compositions et un fil visuel commun qui fait système.
+- Proscrits : listes à puces en série, cartes toutes identiques, textes serrés, dégradés criards, emojis, clichés d'agence IA (robots, cerveaux, circuits) sauf si c'est l'univers du client.
+- Contraste : vérifie chaque carte, le texte doit toujours trancher sur son fond (jamais de texte blanc sur une carte blanche ou claire).
+
+# 4. Contraintes techniques (impératives)
+- Chaque slide est une toile fixe de 1600 × 900 px (élément <section class="slide"> en position:relative, overflow:hidden, fourni). Ton HTML la remplit, typiquement avec un conteneur en position:absolute; inset:0.
+- Tu ne vois pas le rendu : construis les mises en page avec CSS Grid et Flexbox, jamais avec des éléments positionnés au pixel près qui doivent s'aligner entre eux. Pas de traits de liaison entre des blocs HTML : un schéma relié se fait entièrement dans un seul SVG avec son viewBox, ou avec des flèches posées entre les blocs dans la grille. La position absolue ne sert qu'au décor.
+- Le contenu tient dans 900 px de haut sans débordement, et occupe toute la toile : composition équilibrée sur toute la hauteur, jamais un bloc tassé en haut avec un grand vide dessous.
+- Classes préfixées « d- ». Pas de <script>, pas d'attribut on…, pas d'url() ni d'image externe, pas d'@import. La numérotation est ajoutée en bas à droite (laisse 60 px libres dans ce coin).
+- Placeholders : {{LOGO}}, {{REF_LOGOS}}, {{PRICE}}, {{SELLER}}, {{DATE}}.
+
+${STYLE}`,
+      input: `${dossier(input, true, website)}\n\n${brief ? briefJson(brief) : ''}`,
     }
   }
 

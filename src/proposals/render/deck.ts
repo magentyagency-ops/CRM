@@ -1,5 +1,6 @@
 import { type Brand, type FreeDeck, type GeneratedContent, type Slide, type StudioInput, isFreeDeck, isNiraDeck } from '../model.js'
 import { renderNiraDeck } from './nira.js'
+import { NIRA_CLIENT_LOGOS } from './niraAssets.js'
 import { esc, fontsOf, lines, longDate, money, niraMark, paletteCss, paletteOf } from '../theme.js'
 import { pricingOf } from './common.js'
 import { KIT_CSS } from './kit.js'
@@ -640,6 +641,7 @@ export function renderFreeDeck(deck: FreeDeck, content: GeneratedContent, brand:
       .replace(/\{\{DATE\}\}/g, esc(longDate()))
       // Le logo est inséré après nettoyage : c'est une data URL que l'on maîtrise.
       .replace(/\{\{LOGO\}\}/g, logo)
+      .replace(/\{\{REF_LOGOS\}\}/g, `<div class="nira-refs">${NIRA_CLIENT_LOGOS.map((src) => `<span><img src="${src}" alt=""></span>`).join('')}</div>`)
   const count = deck.slides.length
   const slides = deck.slides
     .map(
@@ -677,6 +679,9 @@ ${fontLinks}
 :root{${paletteCss(palette)};--f-head:${fonts.head};--f-body:${fonts.body};--f-mono:${fonts.mono};--hw:${fonts.headWeight};--tr:${fonts.tracking}}
 ${FREE_CSS}
 ${bespoke ? '' : KIT_CSS}
+.nira-refs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:20px!important;width:1300px!important;max-width:1300px!important;flex:none!important;margin:0!important}
+.nira-refs span{height:170px!important;width:auto!important;border-radius:24px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.06);display:grid;place-items:center;padding:24px 30px}
+.nira-refs img{max-width:100%!important;max-height:110px!important;width:auto!important;height:auto!important;object-fit:contain}
 </style>
 <style>${sanitizeCss(deck.css)}</style>
 </head>

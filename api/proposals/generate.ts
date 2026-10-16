@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import type { Brief, GenerateStep, StudioInput } from '../../src/proposals/model.js'
 import { HttpError, requireActiveUser, respond } from '../_lib/guard.js'
 import { readGeneration, readWebsite, startGeneration } from '../_lib/openai.js'
-import { type BrandInput, SCHEMAS, buildPrompt } from '../_lib/proposalSpec.js'
+import { type BrandInput, CUSTOM_DECK_SCHEMA, SCHEMAS, buildPrompt } from '../_lib/proposalSpec.js'
 
 /**
  * Génère une étape du dossier commercial d'un prospect.
@@ -27,6 +27,7 @@ function readInput(raw: unknown): StudioInput {
   if (!text(value.company, 200).trim()) throw new HttpError(400, 'Société manquante.')
 
   return {
+    template: value.template === 'custom' ? 'custom' : 'nira',
     company: text(value.company, 200),
     contact: text(value.contact, 200),
     contactRole: text(value.contactRole, 200),
@@ -93,7 +94,8 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
     const website = step === 'brief' || step === 'deck' ? await readWebsite(input.website) : { text: '', identity: '' }
     const prompt = buildPrompt(step, input, brief, website, readBrand(body.brand))
-    const id = await startGeneration({ name: step, schema: SCHEMAS[step], ...prompt })
+    const schema = step === 'deck' && input.template === 'custom' ? CUSTOM_DECK_SCHEMA : SCHEMAS[step]
+    const id = await startGeneration({ name: step, schema, ...prompt })
     return { step, id }
   })
 }
