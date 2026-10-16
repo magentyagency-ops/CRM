@@ -21,6 +21,16 @@ export interface GenerationOptions {
   image?: string
 }
 
+/** Message clair quand le compte OpenAI est à court de crédit ou limité. */
+function openAiError(status: number, payload: { error?: { message?: string; code?: string; type?: string } | null } | null, prefix: string): HttpError {
+  const code = payload?.error?.code ?? payload?.error?.type ?? ''
+  if (/credit_balance_exhausted|insufficient_quota/.test(code)) {
+    return new HttpError(402, 'Crédit OpenAI épuisé : recharge le compte sur platform.openai.com (Settings → Billing), puis relance.')
+  }
+  if (status === 429) return new HttpError(429, 'OpenAI est saturé (trop de requêtes) : réessaie dans une minute.')
+  return new HttpError(502, `${prefix} : ${payload?.error?.message ?? status}`)
+}
+
 const openAi = (path: string, init: RequestInit = {}) =>
   fetch(`https://api.openai.com/v1/${path}`, {
     ...init,
@@ -59,9 +69,7 @@ export async function startGeneration(options: GenerationOptions): Promise<strin
     }),
   })
   const payload = (await response.json().catch(() => null)) as (ResponsesOutput & { id?: string }) | null
-  if (!response.ok || !payload?.id) {
-    throw new HttpError(502, `OpenAI a refusé la génération : ${payload?.error?.message ?? response.status}`)
-  }
+  if (!response.ok || !payload?.id) throw openAiError(response.status, payload, 'OpenAI a refusé la génération')
   return payload.id
 }
 
@@ -116,10 +124,8 @@ export async function transcribe(audio: Buffer, filename: string, prompt: string
     headers: { Authorization: `Bearer ${openAiKey()}` },
     body: form,
   })
-  const payload = (await response.json().catch(() => null)) as { text?: string; error?: { message?: string } } | null
-  if (!response.ok) {
-    throw new HttpError(502, `Transcription refusée : ${payload?.error?.message ?? response.status}`)
-  }
+  const payload = (await response.json().catch(() => null)) as { text?: string; error?: { message?: string; code?: string } } | null
+  if (!response.ok) throw openAiError(response.status, payload, 'Transcription refusée')
   return payload?.text ?? ''
 }
 
