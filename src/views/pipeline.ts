@@ -17,6 +17,7 @@ import {
   STAGES,
   escapeHtml,
   formatCompactMoney,
+  stageMeta,
   formatDate,
   initials,
   relativeDays,
@@ -112,16 +113,12 @@ function leadCard(lead: Lead): string {
     : ''
   const contactSubtitle = [lead.contact, lead.role].filter(Boolean).join(' · ')
   return `
-    <article class="lead-card" draggable="true" data-lead="${lead.id}">
-      <div class="lead-card-top">
-        <div class="lead-card-header">
-          <div class="lead-card-title-row">
-            <b>${escapeHtml(lead.company || 'Sans société')}</b>
-            <span class="lead-card-value">${formatCompactMoney(lead.value)}</span>
-          </div>
-          <span class="lead-contact">${escapeHtml(contactSubtitle || 'Sans contact')}</span>
-        </div>
-      </div>
+    <article class="lead-card" draggable="true" data-lead="${lead.id}" style="--stage:${stageMeta(lead.stage).color}">
+      <header class="lead-card-brand">
+        <b class="lead-card-company" title="${escapeHtml(lead.company || 'Sans société')}">${escapeHtml(lead.company || 'Sans société')}</b>
+        <span class="lead-card-value">${formatCompactMoney(lead.value)}</span>
+      </header>
+      <span class="lead-contact"><i class="ri-user-3-line"></i>${escapeHtml(contactSubtitle || 'Sans contact')}</span>
       <div class="lead-card-meta">
         ${lead.offer ? `<span class="chip ${OFFERS[lead.offer].chip}"><i class="${OFFERS[lead.offer].icon}"></i>${OFFERS[lead.offer].label}</span>` : ''}
         <span class="chip ${priority.chip}">${priority.label}</span>

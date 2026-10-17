@@ -1282,3 +1282,29 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
 .doc-row .icon-btn { width: 30px; height: 30px; font-size: 13px }
 #docDrop.busy { opacity: .55; pointer-events: none }
 @media (max-width: 780px) { .client-kpis, .doc-upload-opts { grid-template-columns: 1fr; flex-direction: column } }
+
+/* ------------------------------------------- nom de l'entreprise en vedette */
+.lead-card { padding: 0 12px 12px; overflow: hidden }
+.lead-card-brand {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  margin: 0 -12px 8px; padding: 13px 12px 11px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--stage, var(--blue)) 13%, var(--field)), color-mix(in srgb, var(--stage, var(--blue)) 3%, var(--field)));
+  border-bottom: 1px solid color-mix(in srgb, var(--stage, var(--blue)) 16%, var(--hair));
+}
+.lead-card-company {
+  flex: 1; min-width: 0; margin: 0;
+  font: 800 14px/1.2 Manrope, sans-serif; letter-spacing: -.035em; color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.lead-card-brand .lead-card-value {
+  margin-top: 1px;
+  color: color-mix(in srgb, var(--stage, var(--blue)) 85%, var(--ink));
+  background: color-mix(in srgb, var(--stage, var(--blue)) 16%, var(--field));
+}
+.lead-card .lead-contact { display: flex; align-items: center; gap: 5px; font-size: 9.5px }
+.lead-card .lead-contact i { font-size: 11px; opacity: .7 }
+.lead-card:hover .lead-card-brand { background: linear-gradient(135deg, color-mix(in srgb, var(--stage, var(--blue)) 18%, var(--field)), color-mix(in srgb, var(--stage, var(--blue)) 5%, var(--field))) }
+
+/* cartes clients et tableau : même hiérarchie */
+.client-card-head b { font-size: 17px; font-weight: 800; letter-spacing: -.04em }
+.table .cell-name b { font-size: 12px; font-weight: 800; letter-spacing: -.03em }
