@@ -5,17 +5,29 @@ import type { Activity, AppState, CalendarEvent, Call, Lead, Profile, Theme } fr
 const now = () => new Date().toISOString()
 
 /**
- * Rejoue une écriture sans la colonne `offer` si la base ne la connaît pas
- * encore : le déploiement du code et la migration 004 peuvent ainsi arriver
- * dans n'importe quel ordre sans casser la création de leads.
+ * Colonne inconnue de la base, d'après l'erreur Supabase : les colonnes arrivent
+ * avec des migrations (004 pour `offer`, 009 pour `website` et `logo`), et le
+ * code peut être déployé avant qu'elles ne soient jouées.
  */
-function colonneOffreAbsente(error: { code?: string; message?: string } | null): boolean {
-  if (!error) return false
-  return (
-    error.code === 'PGRST204' ||
-    error.code === '42703' ||
-    Boolean(error.message && error.message.includes("'offer'"))
-  )
+function colonneAbsente(error: { code?: string; message?: string } | null): string | null {
+  if (!error?.message) return null
+  if (error.code !== 'PGRST204' && error.code !== '42703') return null
+  return /'(\w+)' column|column "?(\w+)"? (?:of|does)/.exec(error.message)?.slice(1).find(Boolean) ?? null
+}
+
+/** Rejoue une écriture en retirant les colonnes que la base ne connaît pas encore. */
+async function tolerant<T>(
+  payload: Record<string, unknown>,
+  write: (data: Record<string, unknown>) => PromiseLike<{ data: T | null; error: { code?: string; message?: string } | null }>,
+): Promise<{ data: T | null; error: { code?: string; message?: string } | null }> {
+  let result = await write(payload)
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const column = colonneAbsente(result.error)
+    if (!column || !(column in payload)) break
+    delete payload[column]
+    result = await write(payload)
+  }
+  return result
 }
 
 /** Identifiant du compte connecté : sert de propriétaire par défaut. */
@@ -60,6 +72,8 @@ export const api = {
       value: Number(lead.value) || 0,
       probability: Number(lead.probability) || 0,
       tags: Array.isArray(lead.tags) ? lead.tags : [],
+      website: lead.website ?? '',
+      logo: lead.logo ?? '',
       activities: activities
         .filter((act) => act.leadId === lead.id)
         .map(({ leadId: _unused, ...act }) => act),
@@ -107,6 +121,8 @@ export const api = {
       probability: Number.isFinite(input.probability) ? Number(input.probability) : 30,
       priority: input.priority ?? 'medium',
       offer: input.offer ?? '',
+      website: input.website?.trim() ?? '',
+      logo: input.logo ?? '',
       nextStep: input.nextStep?.trim() ?? '',
       expectedCloseAt: input.expectedCloseAt ?? '',
       tags: input.tags ?? [],
@@ -117,20 +133,9 @@ export const api = {
       updatedAt: stamp,
     }
 
-    let { data: createdLead, error: leadError } = await supabase
-      .from('leads')
-      .insert(leadData)
-      .select()
-      .single()
-
-    if (colonneOffreAbsente(leadError)) {
-      const { offer: _sansOffre, ...donneesSansOffre } = leadData
-      ;({ data: createdLead, error: leadError } = await supabase
-        .from('leads')
-        .insert(donneesSansOffre)
-        .select()
-        .single())
-    }
+    const { data: createdLead, error: leadError } = await tolerant<any>({ ...leadData }, (data) =>
+      supabase.from('leads').insert(data).select().single(),
+    )
 
     if (leadError) throw new Error(leadError.message)
 
@@ -149,6 +154,8 @@ export const api = {
       value: Number(createdLead.value) || 0,
       probability: Number(createdLead.probability) || 0,
       tags: Array.isArray(createdLead.tags) ? createdLead.tags : [],
+      website: createdLead.website ?? '',
+      logo: createdLead.logo ?? '',
       activities: [{ id: initialActivity.id, kind: initialActivity.kind, text: initialActivity.text, createdAt: initialActivity.createdAt }],
     }
   },
@@ -183,22 +190,9 @@ export const api = {
     delete updatePayload.id
     delete updatePayload.createdAt
 
-    let { data: updatedLead, error } = await supabase
-      .from('leads')
-      .update(updatePayload)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (colonneOffreAbsente(error)) {
-      delete updatePayload.offer
-      ;({ data: updatedLead, error } = await supabase
-        .from('leads')
-        .update(updatePayload)
-        .eq('id', id)
-        .select()
-        .single())
-    }
+    const { data: updatedLead, error } = await tolerant<any>(updatePayload, (data) =>
+      supabase.from('leads').update(data).eq('id', id).select().single(),
+    )
 
     if (error) throw new Error(error.message)
 
@@ -214,6 +208,8 @@ export const api = {
       value: Number(updatedLead.value) || 0,
       probability: Number(updatedLead.probability) || 0,
       tags: Array.isArray(updatedLead.tags) ? updatedLead.tags : [],
+      website: updatedLead.website ?? '',
+      logo: updatedLead.logo ?? '',
       activities: (activities || []).map(({ leadId: _unused, ...a }) => a),
     }
   },
@@ -255,6 +251,8 @@ export const api = {
       value: Number(lead.value) || 0,
       probability: Number(lead.probability) || 0,
       tags: Array.isArray(lead.tags) ? lead.tags : [],
+      website: lead.website ?? '',
+      logo: lead.logo ?? '',
       activities: (activities || []).map(({ leadId: _unused, ...a }) => a),
     }
   },
@@ -365,4 +363,10 @@ export const api = {
     const { error } = await supabase.from('events').delete().eq('id', id)
     if (error) throw new Error(error.message)
   },
+}
+
+/** Enregistre le site et le logo retrouvés, sans toucher à l'activité du lead. */
+export async function saveLeadLogo(id: string, website: string, logo: string): Promise<boolean> {
+  const { error } = await supabase.from('leads').update({ website, logo }).eq('id', id)
+  return !error
 }

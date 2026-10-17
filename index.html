@@ -168,7 +168,18 @@
             <button class="btn primary" data-action="new-lead"><i class="ri-add-line"></i>Nouveau lead</button>
           </div>
         </header>
-        <section class="card glass">
+        <div class="segmented lead-tabs" role="tablist">
+          <button class="seg active" type="button" data-lead-tab="leads"><i class="ri-contacts-book-3-line"></i> Leads</button>
+          <button class="seg" type="button" data-lead-tab="clients"><i class="ri-handshake-line"></i> Clients</button>
+        </div>
+        <section class="clients-panel" id="clientsPanel" hidden>
+          <div class="clients-toolbar">
+            <input class="field search" id="clientSearch" type="search" placeholder="Rechercher un client…">
+            <span class="muted" style="font-size:10px">Une entreprise devient cliente dès sa première vente gagnée. Un même client peut avoir plusieurs ventes.</span>
+          </div>
+          <div class="client-grid" id="clientGrid"></div>
+        </section>
+        <section class="card glass" id="leadsPanel">
           <div class="table-wrap">
             <table class="table" id="leadTable">
               <thead>

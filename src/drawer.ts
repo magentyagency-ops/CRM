@@ -3,10 +3,12 @@ import { openEventForm, openLeadForm } from './forms.js'
 import { closeDrawer, isDrawerOpen, openDrawer } from './modal.js'
 import { SALE_KINDS, type ProposalRecord } from './proposals/model.js'
 import { listProposals } from './proposals/service.js'
+import { companyKey, openClient } from './views/clients.js'
 import { PROPOSALS_CHANGED, bindDocActions, docActions, openStudio } from './proposals/studio.js'
 import { findLead, state, subscribe, upsertLead } from './store.js'
 import type { ActivityKind, Lead, Stage } from './types.js'
 import {
+  leadAvatar,
   $,
   ACTIVITY_ICONS,
   EVENT_KINDS,
@@ -85,7 +87,7 @@ function renderDrawer(): void {
   const panel = openDrawer(`
     <div class="panel-head">
       <div class="detail-hero">
-        <span class="lead-avatar">${escapeHtml(initials(lead))}</span>
+        ${leadAvatar(lead)}
         <div>
           <h2>${escapeHtml(lead.company || 'Sans société')}</h2>
           <p>${escapeHtml([lead.contact, lead.role].filter(Boolean).join(' · ') || 'Aucun contact renseigné')}</p>
@@ -126,6 +128,7 @@ function renderDrawer(): void {
       <div class="fact"><small>Priorité</small><b>${PRIORITIES[lead.priority].label}</b></div>
       <div class="fact"><small>Email</small><b>${lead.email ? `<a href="mailto:${escapeHtml(lead.email)}" style="color:var(--blue);text-decoration:none">${escapeHtml(lead.email)}</a>` : '—'}</b></div>
       <div class="fact"><small>Téléphone</small><b>${escapeHtml(lead.phone || '—')}</b></div>
+      <div class="fact"><small>Site web</small><b>${lead.website ? `<a href="https://${escapeHtml(lead.website.replace(/^https?:\/\//, ''))}" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none">${escapeHtml(lead.website.replace(/^https?:\/\//, ''))}</a>` : '—'}</b></div>
       <div class="fact"><small>Source</small><b>${escapeHtml(lead.source || '—')}</b></div>
       <div class="fact"><small>Responsable</small><b>${escapeHtml(lead.owner || '—')}</b></div>
     </div>
@@ -144,6 +147,12 @@ function renderDrawer(): void {
     </div>
 
     ${lead.notes ? `<p class="section-title">Notes</p><div class="fact"><b style="font-weight:500;line-height:1.7">${escapeHtml(lead.notes).replace(/\n/g, '<br>')}</b></div>` : ''}
+
+    ${
+      lead.stage === 'won' && lead.company.trim()
+        ? `<button class="btn studio-cta" type="button" id="openClient"><i class="ri-handshake-line"></i>Fiche client et documents</button>`
+        : ''
+    }
 
     <p class="section-title">Présentation & propal</p>
     <button class="btn primary studio-cta" type="button" id="openStudio"><i class="ri-sparkling-2-line"></i>Présentation + propal</button>
@@ -200,6 +209,7 @@ function renderDrawer(): void {
 
   panel.querySelector('#editLead')?.addEventListener('click', () => openLeadForm(lead))
   panel.querySelector('#openStudio')?.addEventListener('click', () => void openStudio(lead.id))
+  panel.querySelector('#openClient')?.addEventListener('click', () => void openClient(companyKey(lead.company)))
   void fillProposals(panel, lead.id)
   // Le bouton et le grand bloc vide mènent au même endroit : cliquer dans la
   // zone « Aucun rendez-vous » est le geste naturel, il ne devait pas rester mort.

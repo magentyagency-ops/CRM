@@ -39,6 +39,10 @@ export interface Lead {
   probability: number
   priority: Priority
   offer: Offer
+  /** Site web de l'entreprise, saisi ou retrouvé avec le logo. */
+  website: string
+  /** Adresse du logo : '' = pas encore cherché, 'none' = introuvable. */
+  logo: string
   nextStep: string
   expectedCloseAt: string
   tags: string[]

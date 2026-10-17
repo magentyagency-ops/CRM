@@ -46,8 +46,13 @@ const option = (value: string, label: string, selected: boolean): string =>
 
 /* ------------------------------------------------------------ lead form */
 
-export function openLeadForm(lead?: Lead): void {
+/**
+ * Formulaire de lead. `prefill` pré-remplit une création : une nouvelle vente
+ * chez un client existant reprend ses coordonnées.
+ */
+export function openLeadForm(lead?: Lead, prefill?: Partial<Lead>): void {
   const isEdit = Boolean(lead)
+  const v: Partial<Lead> | undefined = lead ?? prefill
   const panel = openModal(`
     <form id="leadForm">
       <div class="panel-head">
@@ -60,12 +65,12 @@ export function openLeadForm(lead?: Lead): void {
       <div class="form-grid">
         <div class="field-group"><label for="f-company">Société</label>
           <input class="field" id="f-company" name="company" required list="societesConnues" autocomplete="off"
-            value="${escapeHtml(lead?.company ?? '')}" placeholder="Commence à taper : Certus, GSS…">
+            value="${escapeHtml(v?.company ?? '')}" placeholder="Commence à taper : Certus, GSS…">
           ${suggestionsSocietes()}</div>
         <div class="field-group"><label for="f-contact">Contact principal</label>
-          <input class="field" id="f-contact" name="contact" value="${escapeHtml(lead?.contact ?? '')}" placeholder="Camille Durand"></div>
+          <input class="field" id="f-contact" name="contact" value="${escapeHtml(v?.contact ?? '')}" placeholder="Camille Durand"></div>
         <div class="field-group"><label for="f-role">Fonction</label>
-          <input class="field" id="f-role" name="role" value="${escapeHtml(lead?.role ?? '')}" placeholder="Head of Ops"></div>
+          <input class="field" id="f-role" name="role" value="${escapeHtml(v?.role ?? '')}" placeholder="Head of Ops"></div>
         <div class="field-group"><label for="f-owner">Responsable</label>
           ${
             isAdmin()
@@ -75,7 +80,7 @@ export function openLeadForm(lead?: Lead): void {
                       option(
                         member.id,
                         member.full_name || member.email,
-                        (lead?.owner_id ?? state.profile?.id ?? '') === member.id,
+                        (v?.owner_id ?? state.profile?.id ?? '') === member.id,
                       ),
                     )
                     .join('')}
@@ -85,40 +90,42 @@ export function openLeadForm(lead?: Lead): void {
                 )}" disabled>`
           }</div>
         <div class="field-group"><label for="f-email">Email</label>
-          <input class="field" id="f-email" name="email" type="email" value="${escapeHtml(lead?.email ?? '')}" placeholder="camille@acme.fr"></div>
+          <input class="field" id="f-email" name="email" type="email" value="${escapeHtml(v?.email ?? '')}" placeholder="camille@acme.fr"></div>
         <div class="field-group"><label for="f-phone">Téléphone</label>
           <input class="field" id="f-phone" name="phone" type="tel" inputmode="tel"
-            value="${escapeHtml(lead?.phone ?? '')}" placeholder="+33 6 12 34 56 78"></div>
+            value="${escapeHtml(v?.phone ?? '')}" placeholder="+33 6 12 34 56 78"></div>
         <div class="field-group"><label for="f-stage">Étape</label>
           <select class="field" id="f-stage" name="stage">
-            ${STAGES.map((item) => option(item.id, item.label, (lead?.stage ?? 'qualified') === item.id)).join('')}
+            ${STAGES.map((item) => option(item.id, item.label, (v?.stage ?? 'qualified') === item.id)).join('')}
           </select></div>
         <div class="field-group"><label for="f-priority">Priorité</label>
           <select class="field" id="f-priority" name="priority">
             ${(Object.keys(PRIORITIES) as Priority[])
-              .map((key) => option(key, PRIORITIES[key].label, (lead?.priority ?? 'medium') === key))
+              .map((key) => option(key, PRIORITIES[key].label, (v?.priority ?? 'medium') === key))
               .join('')}
           </select></div>
         <div class="field-group"><label for="f-offer">Type d'offre</label>
           <select class="field" id="f-offer" name="offer">
             ${(Object.keys(OFFERS) as Offer[])
-              .map((key) => option(key, OFFERS[key].label, (lead?.offer ?? '') === key))
+              .map((key) => option(key, OFFERS[key].label, (v?.offer ?? '') === key))
               .join('')}
           </select></div>
         <div class="field-group"><label for="f-value">Valeur (€)</label>
-          <input class="field" id="f-value" name="value" type="number" min="0" step="1" value="${lead?.value ?? 0}"></div>
+          <input class="field" id="f-value" name="value" type="number" min="0" step="1" value="${v?.value ?? 0}"></div>
         <div class="field-group"><label for="f-probability">Probabilité (%)</label>
-          <input class="field" id="f-probability" name="probability" type="number" min="0" max="100" step="1" value="${lead?.probability ?? 30}"></div>
+          <input class="field" id="f-probability" name="probability" type="number" min="0" max="100" step="1" value="${v?.probability ?? 30}"></div>
+        <div class="field-group"><label for="f-website">Site web</label>
+          <input class="field" id="f-website" name="website" value="${escapeHtml(v?.website ?? '')}" placeholder="acme.fr (sert à retrouver le logo)"></div>
         <div class="field-group"><label for="f-source">Source</label>
-          <input class="field" id="f-source" name="source" value="${escapeHtml(lead?.source ?? 'Direct')}" placeholder="Site web, référence…"></div>
+          <input class="field" id="f-source" name="source" value="${escapeHtml(v?.source ?? 'Direct')}" placeholder="Site web, référence…"></div>
         <div class="field-group"><label for="f-close">Clôture estimée</label>
-          <input class="field" id="f-close" name="expectedCloseAt" type="date" value="${toDateInput(lead?.expectedCloseAt ?? '')}"></div>
+          <input class="field" id="f-close" name="expectedCloseAt" type="date" value="${toDateInput(v?.expectedCloseAt ?? '')}"></div>
         <div class="field-group full"><label for="f-next">Prochaine action</label>
-          <input class="field" id="f-next" name="nextStep" value="${escapeHtml(lead?.nextStep ?? '')}" placeholder="Envoyer la proposition commerciale"></div>
+          <input class="field" id="f-next" name="nextStep" value="${escapeHtml(v?.nextStep ?? '')}" placeholder="Envoyer la proposition commerciale"></div>
         <div class="field-group full"><label for="f-tags">Tags (séparés par des virgules)</label>
-          <input class="field" id="f-tags" name="tags" value="${escapeHtml((lead?.tags ?? []).join(', '))}" placeholder="SaaS, PME, urgent"></div>
+          <input class="field" id="f-tags" name="tags" value="${escapeHtml((v?.tags ?? []).join(', '))}" placeholder="SaaS, PME, urgent"></div>
         <div class="field-group full"><label for="f-notes">Notes</label>
-          <textarea class="field" id="f-notes" name="notes" placeholder="Contexte, besoins, objections…">${escapeHtml(lead?.notes ?? '')}</textarea></div>
+          <textarea class="field" id="f-notes" name="notes" placeholder="Contexte, besoins, objections…">${escapeHtml(v?.notes ?? '')}</textarea></div>
       </div>
       <div class="form-actions">
         ${isEdit ? '<button class="btn danger spacer" type="button" id="deleteLead"><i class="ri-delete-bin-line"></i>Supprimer</button>' : ''}
@@ -146,6 +153,7 @@ export function openLeadForm(lead?: Lead): void {
       reprendre('#f-role', connu.role)
       reprendre('#f-email', connu.email)
       reprendre('#f-phone', connu.phone)
+      reprendre('#f-website', connu.website ?? '')
       const offre = panel.querySelector<HTMLSelectElement>('#f-offer')
       if (offre && !offre.value && connu.offer) offre.value = connu.offer
       toast(`Coordonnées reprises de ${connu.company}.`)
@@ -174,6 +182,7 @@ export function openLeadForm(lead?: Lead): void {
       stage: (data.get('stage') as Stage) ?? 'qualified',
       priority: (data.get('priority') as Priority) ?? 'medium',
       offer: (data.get('offer') as Offer) ?? '',
+      website: String(data.get('website') ?? '').trim(),
       value: Number(data.get('value') ?? 0),
       probability: Number(data.get('probability') ?? 0),
       nextStep: String(data.get('nextStep') ?? '').trim(),
@@ -184,6 +193,14 @@ export function openLeadForm(lead?: Lead): void {
         .map((tag) => tag.trim())
         .filter(Boolean),
     }
+
+    // Une société, un e-mail ou un site différent : le logo est à rechercher.
+    const identityChanged =
+      !lead ||
+      lead.company !== payload.company ||
+      lead.email !== payload.email ||
+      (lead.website ?? '') !== payload.website
+    if (identityChanged) payload.logo = ''
 
     try {
       const saved = lead ? await api.updateLead(lead.id, payload) : await api.createLead(payload)

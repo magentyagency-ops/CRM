@@ -1235,3 +1235,54 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
 @media (max-width: 780px) {
   .brand-row, .studio-row, .swatches { grid-template-columns: 1fr }
 }
+
+/* ------------------------------------------------ logos des entreprises */
+.lead-avatar.has-logo { background: #fff; border: 1px solid var(--hair); padding: 3px; overflow: hidden }
+.lead-avatar.has-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 7px; display: block }
+
+/* -------------------------------------------------------------- clients */
+#view-leads [hidden] { display: none !important }
+.lead-tabs { width: fit-content; margin: 0 0 14px }
+.lead-tabs .seg { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 8px 14px }
+.clients-toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; flex-wrap: wrap }
+.client-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px }
+.client-card {
+  display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 20px; text-align: left;
+  border: 1px solid var(--hair); cursor: pointer; color: var(--ink); transition: .2s var(--ease);
+}
+.client-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(26, 93, 153, .12); border-color: color-mix(in srgb, var(--blue) 30%, var(--hair)) }
+.client-card-head { display: flex; align-items: center; gap: 12px; min-width: 0 }
+.client-card-head div { min-width: 0 }
+.client-card-head b { display: block; font-size: 14px; letter-spacing: -.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.client-card-head div span { display: block; color: var(--muted); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.lead-avatar.is-large { width: 44px; height: 44px; border-radius: 13px; font-size: 13px }
+.client-card-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px }
+.client-card-stats div { padding: 9px 10px; border-radius: 12px; background: var(--surface) }
+.client-card-stats small, .client-kpis small { display: block; color: var(--muted); font: 500 8.5px 'DM Mono'; letter-spacing: .08em; text-transform: uppercase }
+.client-card-stats strong { display: block; margin-top: 3px; font-size: 12px; letter-spacing: -.02em }
+.client-card-foot { color: var(--muted); font-size: 9.5px }
+
+.modal-panel:has(.client-sheet) { width: min(760px, calc(100% - 32px)) }
+.client-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 6px }
+.client-kpis div { padding: 14px 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--hair) }
+.client-kpis strong { display: block; margin-top: 4px; font-size: 20px; letter-spacing: -.04em }
+.client-section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px }
+.client-section-head .section-title { margin-bottom: 10px }
+.doc-upload-opts { display: flex; gap: 8px }
+.doc-upload-opts .field { width: auto; min-width: 130px; font-size: 11px; padding: 7px 9px }
+.deal-list, .doc-rows { display: grid; gap: 6px; margin-bottom: 8px }
+.doc-rows { margin-top: 8px }
+.deal-row, .doc-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: 13px;
+  border: 1px solid var(--hair); background: var(--field); color: var(--ink); text-align: left;
+}
+.deal-row { cursor: pointer; transition: .2s var(--ease) }
+.deal-row:hover { border-color: color-mix(in srgb, var(--blue) 35%, var(--hair)) }
+.deal-row strong { font-size: 13px; letter-spacing: -.02em; white-space: nowrap }
+.deal-name { flex: 1; min-width: 0 }
+.deal-name b { display: block; font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.deal-name small { display: block; color: var(--muted); font-size: 9.5px; margin-top: 2px }
+.doc-row > i { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--blue) 10%, var(--field)); color: var(--blue); font-size: 16px; flex: none }
+.doc-row .icon-btn { width: 30px; height: 30px; font-size: 13px }
+#docDrop.busy { opacity: .55; pointer-events: none }
+@media (max-width: 780px) { .client-kpis, .doc-upload-opts { grid-template-columns: 1fr; flex-direction: column } }

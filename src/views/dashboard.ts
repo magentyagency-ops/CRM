@@ -3,6 +3,7 @@ import { openEventForm } from '../forms.js'
 import { findLead, state, subscribe } from '../store.js'
 import type { CalendarEvent, Lead } from '../types.js'
 import {
+  leadAvatar,
   $,
   EVENT_KINDS,
   PRIORITIES,
@@ -106,7 +107,7 @@ function renderFollowUps(openLeads: Lead[]): void {
     .map(
       (lead) => `
       <button class="recent-item" type="button" data-lead="${lead.id}">
-        <span class="lead-avatar">${escapeHtml(initials(lead))}</span>
+        ${leadAvatar(lead)}
         <span>
           <b>${escapeHtml(lead.company || 'Sans société')} <span class="chip ${PRIORITIES[lead.priority].chip}">${PRIORITIES[lead.priority].label}</span></b>
           <span>${escapeHtml([lead.contact, lead.role].filter(Boolean).join(' · ') || 'Sans contact')}${lead.nextStep ? ` · ${escapeHtml(lead.nextStep)}` : ''} · ${relativeDays(lead.updatedAt)}</span>

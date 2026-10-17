@@ -4,6 +4,7 @@ import { openEventForm, openLeadForm } from '../forms.js'
 import { removeLead, state, subscribe } from '../store.js'
 import type { Lead } from '../types.js'
 import {
+  leadAvatar,
   $,
   PRIORITIES,
   STAGES,
@@ -18,6 +19,7 @@ import {
   viewIsActive,
 } from '../ui.js'
 import { enhanceSelects } from '../select.js'
+import { renderClientsList } from './clients.js'
 import { matchesSearch } from './pipeline.js'
 
 type SortKey = 'contact' | 'company' | 'stage' | 'value' | 'probability' | 'expectedCloseAt' | 'updatedAt'
@@ -59,6 +61,18 @@ export function initLeads(): void {
     })
   })
 
+  // Onglets Leads / Clients : les en-têtes de filtres ne valent que pour les leads.
+  document.querySelectorAll<HTMLButtonElement>('[data-lead-tab]').forEach((tab) =>
+    tab.addEventListener('click', () => {
+      const clients = tab.dataset.leadTab === 'clients'
+      document.querySelectorAll('[data-lead-tab]').forEach((item) => item.classList.toggle('active', item === tab))
+      $('#leadsPanel').hidden = clients
+      $('#clientsPanel').hidden = !clients
+      $('#view-leads .head-actions').toggleAttribute('hidden', clients)
+      if (clients) renderClientsList()
+    }),
+  )
+
   subscribe(render)
   render()
 }
@@ -95,7 +109,7 @@ function render(): void {
         <tr data-lead="${lead.id}">
           <td>
             <div class="cell-name">
-              <span class="lead-avatar">${escapeHtml(initials(lead))}</span>
+              ${leadAvatar(lead)}
               <div>
                 <b>${escapeHtml(lead.company || 'Sans société')}</b>
                 <span class="muted" style="font-size:9px">${escapeHtml(lead.role || 'Société')}</span>
