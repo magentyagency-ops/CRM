@@ -98,6 +98,7 @@ rapides (planifier, modifier, supprimer).
 | `supabase/006-etapes-pipeline.sql` | étapes Qualifié / R1 / R2 et reprise des anciennes |
 | `supabase/007-etape-demo.sql` | étape Démo entre R1 et R2 |
 | `supabase/008-propositions.sql` | historique des présentations et propositions générées |
+| `supabase/009-logos-clients.sql` | logos des entreprises, documents clients et stockage privé |
 | `api/proposals/` | transcription des rendez-vous et génération (OpenAI `gpt-5.6-sol`) |
 | `src/proposals/` | studio « Présentation + propal » et gabarits des documents |
 | `src/select.ts`, `src/fields.ts` | listes déroulantes maison, calendriers et champs téléphone |

@@ -81,6 +81,15 @@ par la base.
 Sans la clé, le bouton répond « OPENAI_API_KEY doit être définie ». Sans la table, les
 documents sont générés et ouvrables, mais pas conservés dans la fiche du lead.
 
+## 1 sexies. Logos et clients
+
+Exécuter [`supabase/009-logos-clients.sql`](supabase/009-logos-clients.sql) : il ajoute le site
+web et le logo des leads, la table `client_documents` et l'espace de stockage privé
+`client-documents` où sont déposés les contrats, devis et factures des clients.
+
+Sans ce script, les logos sont retrouvés mais pas conservés d'une session à l'autre, et
+l'onglet Clients affiche les ventes sans pouvoir y joindre de documents.
+
 ## 3. Créer le compte administrateur
 
 1. Dans Supabase → **Authentication → Providers → Email**, laisser les
