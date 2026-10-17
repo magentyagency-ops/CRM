@@ -8,7 +8,6 @@ import { PROPOSALS_CHANGED, bindDocActions, docActions, openStudio } from './pro
 import { findLead, state, subscribe, upsertLead } from './store.js'
 import type { ActivityKind, Lead, Stage } from './types.js'
 import {
-  leadAvatar,
   $,
   ACTIVITY_ICONS,
   EVENT_KINDS,
@@ -87,7 +86,6 @@ function renderDrawer(): void {
   const panel = openDrawer(`
     <div class="panel-head">
       <div class="detail-hero">
-        ${leadAvatar(lead)}
         <div>
           <h2>${escapeHtml(lead.company || 'Sans société')}</h2>
           <p>${escapeHtml([lead.contact, lead.role].filter(Boolean).join(' · ') || 'Aucun contact renseigné')}</p>

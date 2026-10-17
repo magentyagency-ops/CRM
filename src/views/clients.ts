@@ -11,7 +11,6 @@ import {
   escapeHtml,
   formatDate,
   formatMoney,
-  leadAvatar,
   stageMeta,
   toast,
   viewIsActive,
@@ -28,7 +27,6 @@ import {
 export interface Client {
   key: string
   name: string
-  logo: string
   website: string
   contact: string
   leads: Lead[]
@@ -76,11 +74,9 @@ export function listClients(): Client[] {
   for (const [key, leads] of groups) {
     const won = leads.filter((lead) => lead.stage === 'won')
     if (!won.length) continue
-    const withLogo = leads.find((lead) => lead.logo && lead.logo !== 'none')
     clients.push({
       key,
       name: won[0].company.trim(),
-      logo: withLogo?.logo ?? '',
       website: leads.find((lead) => lead.website)?.website ?? '',
       contact: won[0].contact,
       leads: [...leads].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
@@ -195,7 +191,6 @@ function render(): void {
           (client) => `
       <button class="client-card glass" type="button" data-client="${escapeHtml(client.key)}">
         <div class="client-card-head">
-          ${leadAvatar({ company: client.name, contact: client.contact, logo: client.logo }, 'is-large')}
           <div><b>${escapeHtml(client.name)}</b><span>${escapeHtml(client.website || client.contact || '—')}</span></div>
         </div>
         <div class="client-card-stats">
@@ -250,7 +245,6 @@ async function renderClient(key: string, first: boolean): Promise<void> {
     <div class="client-sheet" data-client="${escapeHtml(key)}">
       <div class="panel-head">
         <div class="detail-hero">
-          ${leadAvatar({ company: client.name, contact: client.contact, logo: client.logo }, 'is-large')}
           <div>
             <h2>${escapeHtml(client.name)}</h2>
             <p>${

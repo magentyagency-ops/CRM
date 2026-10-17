@@ -115,7 +115,7 @@ export function openLeadForm(lead?: Lead, prefill?: Partial<Lead>): void {
         <div class="field-group"><label for="f-probability">Probabilité (%)</label>
           <input class="field" id="f-probability" name="probability" type="number" min="0" max="100" step="1" value="${v?.probability ?? 30}"></div>
         <div class="field-group"><label for="f-website">Site web</label>
-          <input class="field" id="f-website" name="website" value="${escapeHtml(v?.website ?? '')}" placeholder="acme.fr (sert à retrouver le logo)"></div>
+          <input class="field" id="f-website" name="website" value="${escapeHtml(v?.website ?? '')}" placeholder="acme.fr"></div>
         <div class="field-group"><label for="f-source">Source</label>
           <input class="field" id="f-source" name="source" value="${escapeHtml(v?.source ?? 'Direct')}" placeholder="Site web, référence…"></div>
         <div class="field-group"><label for="f-close">Clôture estimée</label>
@@ -193,14 +193,6 @@ export function openLeadForm(lead?: Lead, prefill?: Partial<Lead>): void {
         .map((tag) => tag.trim())
         .filter(Boolean),
     }
-
-    // Une société, un e-mail ou un site différent : le logo est à rechercher.
-    const identityChanged =
-      !lead ||
-      lead.company !== payload.company ||
-      lead.email !== payload.email ||
-      (lead.website ?? '') !== payload.website
-    if (identityChanged) payload.logo = ''
 
     try {
       const saved = lead ? await api.updateLead(lead.id, payload) : await api.createLead(payload)

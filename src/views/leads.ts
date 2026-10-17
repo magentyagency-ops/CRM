@@ -4,7 +4,6 @@ import { openEventForm, openLeadForm } from '../forms.js'
 import { removeLead, state, subscribe } from '../store.js'
 import type { Lead } from '../types.js'
 import {
-  leadAvatar,
   $,
   PRIORITIES,
   STAGES,
@@ -109,7 +108,6 @@ function render(): void {
         <tr data-lead="${lead.id}">
           <td>
             <div class="cell-name">
-              ${leadAvatar(lead)}
               <div>
                 <b>${escapeHtml(lead.company || 'Sans société')}</b>
                 <span class="muted" style="font-size:9px">${escapeHtml(lead.role || 'Société')}</span>

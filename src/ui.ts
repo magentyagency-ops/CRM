@@ -200,33 +200,6 @@ export const initialsOf = (primary: string, fallback = ''): string =>
 
 export const initials = (lead: Lead): string => initialsOf(lead.company, lead.contact)
 
-/**
- * Pastille d'une entreprise : son logo s'il a été retrouvé, ses initiales sinon.
- * Une image qui ne charge plus retombe sur les initiales (voir `initAvatars`).
- */
-export function leadAvatar(lead: Pick<Lead, 'company' | 'contact' | 'logo'>, extraClass = ''): string {
-  const text = escapeHtml(initialsOf(lead.company, lead.contact))
-  const logo = lead.logo && lead.logo !== 'none' ? lead.logo : ''
-  const cls = `lead-avatar${extraClass ? ` ${extraClass}` : ''}`
-  return logo
-    ? `<span class="${cls} has-logo" data-initials="${text}"><img src="${escapeHtml(logo)}" alt="" loading="lazy" referrerpolicy="no-referrer"></span>`
-    : `<span class="${cls}">${text}</span>`
-}
-
-export function initAvatars(): void {
-  document.addEventListener(
-    'error',
-    (event) => {
-      const image = event.target as HTMLElement
-      const avatar = image instanceof HTMLImageElement ? image.closest<HTMLElement>('.lead-avatar.has-logo') : null
-      if (!avatar) return
-      avatar.classList.remove('has-logo')
-      avatar.textContent = avatar.dataset.initials ?? '?'
-    },
-    true,
-  )
-}
-
 /* ------------------------------------------------------------ dates util */
 
 export const startOfDay = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate())

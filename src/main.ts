@@ -1,7 +1,6 @@
 import { api } from './api.js'
 import { currentProfile, onAuthChange, sendPasswordReset, signIn, signOut, updateOwnPassword } from './auth.js'
 import { initDrawer } from './drawer.js'
-import { initLogos } from './logos.js'
 import { initClients } from './views/clients.js'
 import { openCallForm, openEventForm, openLeadForm } from './forms.js'
 import { closeModal, initOverlays, openModal } from './modal.js'
@@ -9,7 +8,7 @@ import { initDateFields, initPhoneFields } from './fields.js'
 import { initSelects } from './select.js'
 import { hydrate, isAdmin, notify, state } from './store.js'
 import type { Theme } from './types.js'
-import { $, $$, escapeHtml, toast, initAvatars } from './ui.js'
+import { $, $$, escapeHtml, toast } from './ui.js'
 import { initAdmin, loadMembers } from './views/admin.js'
 import { initCalendar } from './views/calendar.js'
 import { initCalls } from './views/calls.js'
@@ -280,8 +279,6 @@ async function boot(): Promise<void> {
   initLogin()
   initAccountMenu()
   initDrawer()
-  initAvatars()
-  initLogos()
   initDashboard()
   initPipeline()
   initLeads()

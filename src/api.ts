@@ -6,7 +6,7 @@ const now = () => new Date().toISOString()
 
 /**
  * Colonne inconnue de la base, d'après l'erreur Supabase : les colonnes arrivent
- * avec des migrations (004 pour `offer`, 009 pour `website` et `logo`), et le
+ * avec des migrations (004 pour `offer`, 009 pour `website`), et le
  * code peut être déployé avant qu'elles ne soient jouées.
  */
 function colonneAbsente(error: { code?: string; message?: string } | null): string | null {
@@ -73,7 +73,6 @@ export const api = {
       probability: Number(lead.probability) || 0,
       tags: Array.isArray(lead.tags) ? lead.tags : [],
       website: lead.website ?? '',
-      logo: lead.logo ?? '',
       activities: activities
         .filter((act) => act.leadId === lead.id)
         .map(({ leadId: _unused, ...act }) => act),
@@ -122,7 +121,6 @@ export const api = {
       priority: input.priority ?? 'medium',
       offer: input.offer ?? '',
       website: input.website?.trim() ?? '',
-      logo: input.logo ?? '',
       nextStep: input.nextStep?.trim() ?? '',
       expectedCloseAt: input.expectedCloseAt ?? '',
       tags: input.tags ?? [],
@@ -155,7 +153,6 @@ export const api = {
       probability: Number(createdLead.probability) || 0,
       tags: Array.isArray(createdLead.tags) ? createdLead.tags : [],
       website: createdLead.website ?? '',
-      logo: createdLead.logo ?? '',
       activities: [{ id: initialActivity.id, kind: initialActivity.kind, text: initialActivity.text, createdAt: initialActivity.createdAt }],
     }
   },
@@ -209,7 +206,6 @@ export const api = {
       probability: Number(updatedLead.probability) || 0,
       tags: Array.isArray(updatedLead.tags) ? updatedLead.tags : [],
       website: updatedLead.website ?? '',
-      logo: updatedLead.logo ?? '',
       activities: (activities || []).map(({ leadId: _unused, ...a }) => a),
     }
   },
@@ -252,7 +248,6 @@ export const api = {
       probability: Number(lead.probability) || 0,
       tags: Array.isArray(lead.tags) ? lead.tags : [],
       website: lead.website ?? '',
-      logo: lead.logo ?? '',
       activities: (activities || []).map(({ leadId: _unused, ...a }) => a),
     }
   },
@@ -365,8 +360,3 @@ export const api = {
   },
 }
 
-/** Enregistre le site et le logo retrouvés, sans toucher à l'activité du lead. */
-export async function saveLeadLogo(id: string, website: string, logo: string): Promise<boolean> {
-  const { error } = await supabase.from('leads').update({ website, logo }).eq('id', id)
-  return !error
-}
